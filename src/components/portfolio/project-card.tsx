@@ -28,6 +28,7 @@ type ProjectCardProps = {
   onDelete: (projectId: string) => void;
   className?: string;
   style?: React.CSSProperties;
+  readOnly?: boolean;
 };
 
 const aiHints: Record<string, string> = {
@@ -37,7 +38,7 @@ const aiHints: Record<string, string> = {
   '4': 'space galaxy',
 };
 
-export default function ProjectCard({ project, onUpdate, onDelete, className, style }: ProjectCardProps) {
+export default function ProjectCard({ project, onUpdate, onDelete, className, style, readOnly = false }: ProjectCardProps) {
   const handleDescriptionSave = (newDescription: string) => {
     onUpdate({ ...project, description: newDescription });
   };
@@ -56,29 +57,31 @@ export default function ProjectCard({ project, onUpdate, onDelete, className, st
         </div>
         <div className="flex justify-between items-start">
             <CardTitle className="font-headline text-lg">{project.title}</CardTitle>
-            <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
-                <MoreVertical className="h-4 w-4" />
-                </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-                <DropdownMenuItem disabled>
-                    <Pencil className="mr-2 h-4 w-4" />
-                    <span>Edit</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                    <ImproveDescriptionDialog
-                        description={project.description}
-                        onSave={handleDescriptionSave}
-                    />
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onDelete(project.id)} className="text-destructive">
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    <span>Delete</span>
-                </DropdownMenuItem>
-            </DropdownMenuContent>
-            </DropdownMenu>
+            {!readOnly && (
+              <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
+                  <MoreVertical className="h-4 w-4" />
+                  </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                  <DropdownMenuItem disabled>
+                      <Pencil className="mr-2 h-4 w-4" />
+                      <span>Edit</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                      <ImproveDescriptionDialog
+                          description={project.description}
+                          onSave={handleDescriptionSave}
+                      />
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onDelete(project.id)} className="text-destructive">
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      <span>Delete</span>
+                  </DropdownMenuItem>
+              </DropdownMenuContent>
+              </DropdownMenu>
+            )}
         </div>
         <CardDescription>
           Added {formatDistanceToNow(new Date(project.createdAt), { addSuffix: true })}

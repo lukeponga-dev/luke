@@ -12,9 +12,10 @@ import { useToast } from '@/hooks/use-toast';
 type PortfolioPageProps = {
   initialProjects: Project[];
   headerActions?: React.ReactNode;
+  readOnly?: boolean;
 };
 
-export default function PortfolioPage({ initialProjects, headerActions }: PortfolioPageProps) {
+export default function PortfolioPage({ initialProjects, readOnly = false }: PortfolioPageProps) {
   const [projects, setProjects] = useState<Project[]>(initialProjects);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('newest');
@@ -89,7 +90,7 @@ export default function PortfolioPage({ initialProjects, headerActions }: Portfo
                         <SelectItem value="title-desc">Title (Z-A)</SelectItem>
                     </SelectContent>
                 </Select>
-                 <AddProjectSheet onProjectAdd={handleProjectAdd} onProjectsImport={handleProjectsImport} />
+                 {!readOnly && <AddProjectSheet onProjectAdd={handleProjectAdd} onProjectsImport={handleProjectsImport} />}
             </div>
         </div>
         
@@ -100,6 +101,7 @@ export default function PortfolioPage({ initialProjects, headerActions }: Portfo
               project={project}
               onUpdate={handleProjectUpdate}
               onDelete={handleProjectDelete}
+              readOnly={readOnly}
               className="animate-in fade-in-0 zoom-in-95 duration-500"
               style={{ animationDelay: `${index * 50}ms`, animationFillMode: 'backwards' }}
             />

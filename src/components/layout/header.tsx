@@ -14,6 +14,7 @@ export default function Header({ children }: HeaderProps) {
             Portfolio Pilot
           </h1>
         </div>
+        <div>{children}</div>
       </div>
     </header>
   );

@@ -87,7 +87,7 @@ export default function Home() {
           </div>
         </section>
 
-        <PortfolioPage initialProjects={initialProjects} />
+        <PortfolioPage initialProjects={initialProjects} readOnly={true} />
 
         <section id="education" className="mb-12 mt-12">
           <h2 className="text-3xl font-headline font-bold mb-6 text-center">
