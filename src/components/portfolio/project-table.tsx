@@ -22,19 +22,50 @@ import { MoreVertical, Trash2, Pencil, Wand2, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import ImproveDescriptionDialog from './improve-description-dialog';
 import EditProjectSheet from './edit-project-sheet';
+import { useTransition } from 'react';
+import { deleteProject, updateProject } from '@/app/actions';
+import { useToast } from '@/hooks/use-toast';
 
 type ProjectTableProps = {
   projects: Project[];
-  onUpdate: (updatedProject: Project) => void;
-  onDelete: (projectId: string) => void;
-  isPending?: boolean;
 };
 
-export default function ProjectTable({ projects, onUpdate, onDelete, isPending = false }: ProjectTableProps) {
+export default function ProjectTable({ projects }: ProjectTableProps) {
+  const [isPending, startTransition] = useTransition();
+  const { toast } = useToast();
+  
   const handleDescriptionSave = (project: Project, newDescription: string) => {
     onUpdate({ ...project, description: newDescription });
   };
   
+  const onUpdate = (updatedProject: Project) => {
+    startTransition(async () => {
+      const formData = new FormData();
+      formData.append('id', updatedProject.id);
+      formData.append('title', updatedProject.title);
+      formData.append('description', updatedProject.description);
+      formData.append('technologies', updatedProject.technologies.join(','));
+      formData.append('keywords', updatedProject.keywords.join(','));
+      formData.append('imageUrl', updatedProject.imageUrl);
+      formData.append('createdAt', updatedProject.createdAt);
+
+      const result = await updateProject({}, formData);
+      if (result.success) {
+        toast({ title: 'Project updated!', description: `${updatedProject.title} has been updated.` });
+      } else {
+        toast({ variant: 'destructive', title: 'Error', description: result.message });
+      }
+    });
+  };
+
+  const onDelete = (projectId: string) => {
+    startTransition(async () => {
+      await deleteProject(projectId);
+      toast({ variant: 'destructive', title: 'Project deleted.' });
+    });
+  };
+
+
   return (
     <div className="border rounded-lg relative">
        {isPending && (

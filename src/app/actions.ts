@@ -99,7 +99,7 @@ export async function addProject(prevState: any, formData: FormData) {
 
         revalidatePath('/');
         revalidatePath('/admin');
-        return { success: true, project: projectData };
+        return { success: true, message: 'Project added successfully' };
     } catch (error) {
         return { success: false, message: "Failed to save project." };
     }

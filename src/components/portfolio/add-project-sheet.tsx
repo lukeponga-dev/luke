@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Sheet,
@@ -10,26 +10,34 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-  SheetFooter,
-  SheetClose,
 } from '@/components/ui/sheet';
 import ProjectForm from './project-form';
+import { useToast } from '@/hooks/use-toast';
+import { useActionState } from 'react';
+import { addProject } from '@/app/actions';
+
+const initialState = {
+  success: false,
+  message: '',
+};
 
 export default function AddProjectSheet({
-  onSave,
   children,
 }: {
-  onSave: (formData: FormData) => Promise<boolean>;
   children: React.ReactNode;
 }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [formState, formAction] = useActionState(addProject, initialState);
+  const { toast } = useToast();
 
-  const handleSave = async (formData: FormData) => {
-    const success = await onSave(formData);
-    if (success) {
+  useEffect(() => {
+    if (formState.success) {
+      toast({ title: 'Project added!', description: 'Your new project has been saved.' });
       setIsOpen(false);
+    } else if (formState.message) {
+      toast({ variant: 'destructive', title: 'Error', description: formState.message });
     }
-  };
+  }, [formState, toast]);
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -43,7 +51,7 @@ export default function AddProjectSheet({
         </SheetHeader>
         <div className="py-4">
           <ProjectForm
-            action={handleSave}
+            action={formAction}
             onCancel={() => setIsOpen(false)}
           />
         </div>
