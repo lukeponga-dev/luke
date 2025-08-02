@@ -3,7 +3,6 @@
 
 import { useState, useTransition, useEffect } from 'react';
 import Header from '@/components/layout/header';
-import { getProjects } from '@/lib/project-fs';
 import { logout, updateProject, deleteProject, addProject } from '@/app/actions';
 import { Button } from '@/components/ui/button';
 import { LogOut, Loader2 } from 'lucide-react';
@@ -11,6 +10,7 @@ import type { Project } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import ProjectTable from '@/components/portfolio/project-table';
 import AddProjectSheet from '@/components/portfolio/add-project-sheet';
+import { getProjects } from '@/lib/project-fs';
 
 type AdminPageProps = {
   initialProjects: Project[];
@@ -46,7 +46,7 @@ function AdminPageComponent({ initialProjects }: AdminPageProps) {
     setProjects(prev => [addedProject, ...prev]);
   }
 
-  if (!projects) {
+  if (projects === undefined) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="h-8 w-8 animate-spin" />
