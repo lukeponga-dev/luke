@@ -34,8 +34,7 @@ const aiHints: Record<string, string> = {
   '1': 'new zealand landscape',
   '2': 'medical doctor',
   '3': 'clinic reception',
-  '4': 'modern car',
-  '5': 'cryptocurrency chart',
+  '4': 'space galaxy',
 };
 
 export default function ProjectCard({ project, onUpdate, onDelete, className, style }: ProjectCardProps) {
