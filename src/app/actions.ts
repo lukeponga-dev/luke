@@ -63,8 +63,7 @@ export async function login(prevState: { error: string }, formData: FormData) {
 
     if (parsed.success) {
         if (parsed.data.password === (process.env.ADMIN_PASSWORD || 'password')) {
-            const cookieStore = cookies();
-            cookieStore.set('auth', 'true', {
+            (cookies() as any).set('auth', 'true', {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production',
                 maxAge: 60 * 60 * 24, // 1 day
@@ -77,8 +76,7 @@ export async function login(prevState: { error: string }, formData: FormData) {
 }
 
 export async function logout() {
-    const cookieStore = cookies();
-    cookieStore.delete('auth');
+    (cookies() as any).delete('auth');
     redirect('/login');
 }
 
