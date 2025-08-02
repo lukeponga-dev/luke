@@ -83,23 +83,26 @@ export async function logout() {
 
 export async function addProject(prevState: any, formData: FormData) {
     const projectData = {
-        id: formData.get('id') as string,
+        id: crypto.randomUUID(),
         title: formData.get('title') as string,
         description: formData.get('description') as string,
         technologies: (formData.get('technologies') as string).split(',').map(t => t.trim()),
         keywords: (formData.get('keywords') as string).split(',').map(k => k.trim()),
-        imageUrl: formData.get('imageUrl') as string,
-        createdAt: formData.get('createdAt') as string,
+        imageUrl: formData.get('imageUrl') as string || 'https://placehold.co/600x400.png',
+        createdAt: new Date().toISOString(),
     };
 
-    const projects = await getProjects();
-    projects.unshift(projectData);
-    await saveProjects(projects);
+    try {
+        const projects = await getProjects();
+        projects.unshift(projectData);
+        await saveProjects(projects);
 
-    revalidatePath('/');
-    revalidatePath('/admin');
-    
-    return { success: true, message: "Project added successfully." };
+        revalidatePath('/');
+        revalidatePath('/admin');
+        return { success: true, project: projectData };
+    } catch (error) {
+        return { success: false, message: "Failed to save project." };
+    }
 }
 
 export async function updateProject(prevState: any, formData: FormData) {
@@ -120,7 +123,7 @@ export async function updateProject(prevState: any, formData: FormData) {
         await saveProjects(projects);
         revalidatePath('/');
         revalidatePath('/admin');
-        return { success: true, message: "Project updated successfully." };
+        return { success: true, project: projectData };
     }
     return { success: false, message: "Project not found." };
 }
@@ -130,13 +133,13 @@ export async function deleteProject(projectId: string) {
     const updatedProjects = projects.filter(p => p.id !== projectId);
     await saveProjects(updatedProjects);
     revalidatePath('/');
-    revalidatePath('/admin');
+    revalidatePath('/admin/projects');
 }
 
 export async function importProjects(newProjects: Project[]) {
     const projects = await getProjects();
     const updatedProjects = [...newProjects, ...projects.filter(p => !newProjects.some(np => np.id === p.id))];
     await saveProjects(updatedProjects);
-    revalidatePath('/');
+revalidatePath('/');
     revalidatePath('/admin');
 }

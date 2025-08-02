@@ -36,7 +36,12 @@ export default function ProjectTable({ projects, onUpdate, onDelete, isPending =
   };
   
   return (
-    <div className="border rounded-lg">
+    <div className="border rounded-lg relative">
+       {isPending && (
+          <div className="absolute inset-0 bg-background/50 flex items-center justify-center z-10 rounded-lg">
+              <Loader2 className="h-6 w-6 animate-spin" />
+          </div>
+      )}
         <Table>
           <TableHeader>
             <TableRow>
@@ -49,12 +54,7 @@ export default function ProjectTable({ projects, onUpdate, onDelete, isPending =
           </TableHeader>
           <TableBody>
             {projects.map((project) => (
-              <TableRow key={project.id} className="relative">
-                 {isPending && (
-                    <TableCell colSpan={5} className="absolute inset-0 bg-background/50 flex items-center justify-center z-10">
-                        <Loader2 className="h-6 w-6 animate-spin" />
-                    </TableCell>
-                )}
+              <TableRow key={project.id}>
                 <TableCell className="font-medium">{project.title}</TableCell>
                 <TableCell className="text-muted-foreground text-sm max-w-sm">
                     <p className="truncate">{project.description}</p>
@@ -77,8 +77,8 @@ export default function ProjectTable({ projects, onUpdate, onDelete, isPending =
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                         <EditProjectSheet project={project}>
-                            <div className="flex items-center">
+                         <EditProjectSheet project={project} onSave={(updated) => onUpdate(updated)}>
+                            <div className="flex items-center w-full">
                               <Pencil className="mr-2 h-4 w-4" />
                               <span>Edit</span>
                             </div>

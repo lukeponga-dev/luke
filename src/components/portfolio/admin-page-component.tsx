@@ -1,80 +1,104 @@
 
 'use client';
 
-import { useTransition } from 'react';
-import Header from '@/components/layout/header';
-import { logout, updateProject, deleteProject } from '@/app/actions';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { LogOut, Loader2 } from 'lucide-react';
-import type { Project } from '@/lib/types';
-import { useToast } from '@/hooks/use-toast';
-import ProjectTable from '@/components/portfolio/project-table';
-import AddProjectSheet from '@/components/portfolio/add-project-sheet';
+import {
+  SidebarProvider,
+  Sidebar,
+  SidebarHeader,
+  SidebarContent,
+  SidebarMenu,
+  SidebarMenuItem,
+  SidebarMenuButton,
+  SidebarFooter,
+  SidebarTrigger,
+  SidebarInset,
+} from '@/components/ui/sidebar';
+import { Home, HardDrive, LogOut, Github } from 'lucide-react';
+import { logout } from '@/app/actions';
+import { Logo } from '../icons/logo';
 
-type AdminPageProps = {
-  initialProjects: Project[];
+type AdminLayoutProps = {
+  children: React.ReactNode;
 };
 
-export default function AdminPageComponent({ initialProjects }: AdminPageProps) {
-  const [isPending, startTransition] = useTransition();
-  const { toast } = useToast();
-
-  const handleProjectUpdate = (updatedProject: Project) => {
-    startTransition(async () => {
-      try {
-        await updateProject(updatedProject);
-        toast({ title: 'Project updated!', description: `${updatedProject.title} has been updated.` });
-      } catch (error) {
-        toast({ variant: 'destructive', title: 'Error', description: 'Failed to update project.' });
-      }
-    });
-  };
-
-  const handleProjectDelete = (projectId: string) => {
-    startTransition(async () => {
-      try {
-        await deleteProject(projectId);
-        toast({ title: 'Project deleted.' });
-      } catch (error) {
-        toast({ variant: 'destructive', title: 'Error', description: 'Failed to delete project.' });
-      }
-    });
-  };
-  
-  if (initialProjects === undefined) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
-  }
+export default function AdminLayout({ children }: AdminLayoutProps) {
+  const pathname = usePathname();
 
   return (
-    <div className="flex min-h-screen w-full flex-col">
-      <Header>
-        <div className="flex items-center gap-4">
-          <form action={logout}>
-            <Button variant="outline" size="sm">
-              <LogOut className="mr-2 h-4 w-4" />
-              Logout
-            </Button>
+    <SidebarProvider>
+      <Sidebar>
+        <SidebarHeader>
+          <div className="flex items-center gap-2">
+            <Logo className="h-6 w-6 text-primary" />
+            <h1 className="font-headline text-xl font-semibold tracking-tight">
+              Portfolio Pilot
+            </h1>
+          </div>
+        </SidebarHeader>
+        <SidebarContent>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname === '/admin'}
+                tooltip={{ children: 'Dashboard' }}
+              >
+                <Link href="/admin">
+                  <Home />
+                  <span>Dashboard</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                asChild
+                isActive={pathname.startsWith('/admin/projects')}
+                tooltip={{ children: 'Projects' }}
+              >
+                <Link href="/admin/projects">
+                  <HardDrive />
+                  <span>Projects</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarContent>
+        <SidebarFooter className='border-t'>
+          <form action={logout} className="w-full">
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton tooltip={{ children: 'Logout' }}>
+                  <LogOut />
+                  <span>Logout</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
           </form>
-        </div>
-      </Header>
-      <main className="flex-1 container py-8">
-        <div className="flex justify-between items-center mb-8">
-            <h1 className="text-3xl font-headline font-bold">Manage Projects</h1>
-            <div className="flex items-center gap-4">
-              <AddProjectSheet />
+        </SidebarFooter>
+      </Sidebar>
+      <SidebarInset>
+        <header className="flex h-14 items-center justify-between border-b bg-background px-4">
+          <div className="flex items-center gap-2 md:hidden">
+            <SidebarTrigger />
+            <Logo className="h-6 w-6 text-primary" />
+            <h1 className="font-headline text-lg font-semibold tracking-tight">
+              Portfolio
+            </h1>
+          </div>
+           <div className="flex items-center gap-4">
+              <Button variant="outline" size="sm" asChild>
+                <a href="https://github.com/firebase/studio-extra-recipe-nextjs" target="_blank">
+                  <Github className="mr-2 h-4 w-4" />
+                  View on Github
+                </a>
+              </Button>
             </div>
-        </div>
-        <ProjectTable
-          projects={initialProjects}
-          onUpdate={handleProjectUpdate}
-          onDelete={handleProjectDelete}
-          isPending={isPending}
-        />
-      </main>
-    </div>
+        </header>
+        <main className="flex-1 p-4 md:p-8">{children}</main>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }
