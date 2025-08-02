@@ -27,10 +27,16 @@ const nextConfig: NextConfig = {
     ],
   },
   webpack: (config, { isServer }) => {
+    config.resolve.alias = {
+        ...config.resolve.alias,
+        'handlebars': 'handlebars/dist/handlebars.js',
+    };
+
     if (!isServer) {
-      // Exclude this specific module from the client-side bundle
       config.resolve.alias['@opentelemetry/exporter-jaeger'] = false;
+      config.resolve.alias['@genkit-ai/firebase'] = false;
     }
+    
     return config;
   },
 };
