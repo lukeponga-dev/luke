@@ -1,6 +1,7 @@
+
 'use client';
 
-import { useState, useMemo, useTransition } from 'react';
+import { useState, useMemo, useTransition, useEffect } from 'react';
 import type { Project } from '@/lib/types';
 import AddProjectSheet from './add-project-sheet';
 import ProjectCard from './project-card';
@@ -21,6 +22,10 @@ export default function PortfolioPage({ initialProjects, readOnly = false }: Por
   const [sortBy, setSortBy] = useState('newest');
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
+  
+  useEffect(() => {
+    setProjects(initialProjects);
+  }, [initialProjects]);
 
   const handleProjectUpdate = (updatedProject: Project) => {
     startTransition(async () => {
@@ -97,7 +102,7 @@ export default function PortfolioPage({ initialProjects, readOnly = false }: Por
                         <SelectItem value="title-desc">Title (Z-A)</SelectItem>
                     </SelectContent>
                 </Select>
-                 {!readOnly && <AddProjectSheet />}
+                 {!readOnly && <AddProjectSheet onProjectAdded={(newProject) => setProjects(prev => [newProject, ...prev])}/>}
             </div>
         </div>
         
