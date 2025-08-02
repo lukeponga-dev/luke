@@ -1,13 +1,54 @@
-import Header from '@/components/layout/header';
-import PortfolioPage from '@/components/portfolio/portfolio-page';
-import { getProjects } from '@/lib/project-fs';
-import { logout } from '@/app/actions';
-import { Button } from '@/components/ui/button';
-import { LogOut } from 'lucide-react';
 
-export default async function AdminPage() {
-  const projects = await getProjects();
+'use client';
+
+import { useState, useTransition } from 'react';
+import Header from '@/components/layout/header';
+import { getProjects } from '@/lib/project-fs';
+import { logout, updateProject, deleteProject } from '@/app/actions';
+import { Button } from '@/components/ui/button';
+import { LogOut, Loader2 } from 'lucide-react';
+import type { Project } from '@/lib/types';
+import { useToast } from '@/hooks/use-toast';
+import ProjectTable from '@/components/portfolio/project-table';
+import AddProjectSheet from '@/components/portfolio/add-project-sheet';
+
+type AdminPageProps = {
+  initialProjects: Project[];
+};
+
+function AdminPageComponent({ initialProjects }: AdminPageProps) {
+  const [projects, setProjects] = useState<Project[]>(initialProjects);
+  const [isPending, startTransition] = useTransition();
+  const { toast } = useToast();
+
+  const handleProjectUpdate = (updatedProject: Project) => {
+    startTransition(async () => {
+      await updateProject(updatedProject);
+      setProjects((prev) => prev.map((p) => (p.id === updatedProject.id ? updatedProject : p)));
+      toast({ title: 'Project updated!', description: `${updatedProject.title} has been updated.` });
+    });
+  };
+
+  const handleProjectDelete = (projectId: string) => {
+    startTransition(async () => {
+      await deleteProject(projectId);
+      setProjects((prev) => prev.filter((p) => p.id !== projectId));
+      toast({ variant: 'destructive', title: 'Project deleted.' });
+    });
+  };
   
+  const handleProjectAdd = (addedProject: Project) => {
+    setProjects(prev => [addedProject, ...prev]);
+  }
+
+  if (!initialProjects) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-screen w-full flex-col">
       <Header>
@@ -21,8 +62,36 @@ export default async function AdminPage() {
         </div>
       </Header>
       <main className="flex-1 container py-8">
-        <PortfolioPage initialProjects={projects} />
+        <div className="flex justify-between items-center mb-8">
+            <h1 className="text-3xl font-headline font-bold">Manage Projects</h1>
+            <AddProjectSheet onProjectAdded={handleProjectAdd} />
+        </div>
+        <ProjectTable
+          projects={projects}
+          onUpdate={handleProjectUpdate}
+          onDelete={handleProjectDelete}
+          isPending={isPending}
+        />
       </main>
     </div>
   );
+}
+
+
+export default function AdminLoader() {
+  const [projects, setProjects] = useState<Project[] | null>(null);
+  
+  React.useEffect(() => {
+    getProjects().then(setProjects);
+  }, []);
+
+  if (projects === null) {
+    return (
+      <div className="flex min-h-screen w-full items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
+
+  return <AdminPageComponent initialProjects={projects} />;
 }
