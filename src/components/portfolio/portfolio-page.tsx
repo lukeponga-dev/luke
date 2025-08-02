@@ -1,15 +1,12 @@
 
 'use client';
 
-import { useState, useMemo, useTransition } from 'react';
+import { useState, useMemo } from 'react';
 import type { Project } from '@/lib/types';
-import AddProjectSheet from './add-project-sheet';
 import ProjectCard from './project-card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, Loader2 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { updateProject, deleteProject } from '@/app/actions';
 
 type PortfolioPageProps = {
   initialProjects: Project[];
@@ -19,33 +16,7 @@ type PortfolioPageProps = {
 export default function PortfolioPage({ initialProjects, readOnly = false }: PortfolioPageProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('newest');
-  const [isPending, startTransition] = useTransition();
-  const { toast } = useToast();
-
-  const handleProjectUpdate = (updatedProject: Project) => {
-    if (readOnly) return;
-    startTransition(async () => {
-      try {
-        await updateProject(updatedProject);
-        toast({ title: "Project updated!", description: `${updatedProject.title} has been updated.` });
-      } catch (error) {
-        toast({ variant: 'destructive', title: 'Error', description: 'Failed to update project.' });
-      }
-    });
-  };
-
-  const handleProjectDelete = (projectId: string) => {
-    if (readOnly) return;
-    startTransition(async () => {
-      try {
-        await deleteProject(projectId);
-        toast({ variant: "destructive", title: "Project deleted." });
-      } catch(error) {
-        toast({ variant: 'destructive', title: 'Error', description: 'Failed to delete project.' });
-      }
-    });
-  };
-
+  
   const filteredAndSortedProjects = useMemo(() => {
     return (initialProjects || [])
       .filter(project => {
@@ -81,7 +52,7 @@ export default function PortfolioPage({ initialProjects, readOnly = false }: Por
   }
 
   return (
-    <>
+    <section id="projects">
         <div className="flex flex-col md:flex-row gap-4 justify-between items-center mb-8">
             <h2 className="text-3xl font-headline font-bold tracking-tight">Featured Projects</h2>
             <div className="flex gap-4 w-full md:w-auto">
@@ -105,7 +76,6 @@ export default function PortfolioPage({ initialProjects, readOnly = false }: Por
                         <SelectItem value="title-desc">Title (Z-A)</SelectItem>
                     </SelectContent>
                 </Select>
-                 {!readOnly && <AddProjectSheet />}
             </div>
         </div>
         
@@ -114,10 +84,7 @@ export default function PortfolioPage({ initialProjects, readOnly = false }: Por
             <ProjectCard
               key={project.id}
               project={project}
-              onUpdate={handleProjectUpdate}
-              onDelete={handleProjectDelete}
               readOnly={readOnly}
-              isPending={isPending}
               className="animate-in fade-in-0 zoom-in-95 duration-500"
               style={{ animationDelay: `${index * 50}ms`, animationFillMode: 'backwards' }}
             />
@@ -129,6 +96,6 @@ export default function PortfolioPage({ initialProjects, readOnly = false }: Por
                 <p className="text-muted-foreground mt-2">Try adjusting your search or add a new project.</p>
             </div>
         )}
-    </>
+    </section>
   );
 }

@@ -1,3 +1,4 @@
+
 'use client';
 
 import Image from 'next/image';
@@ -14,6 +15,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -22,15 +24,26 @@ import { MoreVertical, Trash2, Pencil, Loader2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import ImproveDescriptionDialog from './improve-description-dialog';
 import EditProjectSheet from './edit-project-sheet';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { useTransition } from 'react';
+import { deleteProject, updateProject } from '@/app/actions';
+import { useToast } from '@/hooks/use-toast';
 
 type ProjectCardProps = {
   project: Project;
-  onUpdate: (updatedProject: Project) => void;
-  onDelete: (projectId: string) => void;
   className?: string;
   style?: React.CSSProperties;
   readOnly?: boolean;
-  isPending?: boolean;
 };
 
 const aiHints: Record<string, string> = {
@@ -40,9 +53,33 @@ const aiHints: Record<string, string> = {
   '4': 'space galaxy',
 };
 
-export default function ProjectCard({ project, onUpdate, onDelete, className, style, readOnly = false, isPending = false }: ProjectCardProps) {
+export default function ProjectCard({ project, className, style, readOnly = false }: ProjectCardProps) {
+  const [isPending, startTransition] = useTransition();
+  const { toast } = useToast();
+
   const handleDescriptionSave = (newDescription: string) => {
-    onUpdate({ ...project, description: newDescription });
+    startTransition(async () => {
+      const formData = new FormData();
+      Object.keys(project).forEach(key => {
+        const value = project[key as keyof Project];
+        if (key === 'description') {
+          formData.append(key, newDescription);
+        } else if (Array.isArray(value)) {
+          formData.append(key, value.join(','));
+        } else {
+          formData.append(key, value);
+        }
+      });
+      await updateProject({}, formData);
+      toast({ title: 'Description updated!' });
+    });
+  };
+
+  const handleDelete = () => {
+    startTransition(async () => {
+      await deleteProject(project.id);
+      toast({ variant: 'destructive', title: 'Project deleted' });
+    });
   };
   
   return (
@@ -74,7 +111,7 @@ export default function ProjectCard({ project, onUpdate, onDelete, className, st
               <DropdownMenuContent align="end">
                   <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                       <EditProjectSheet project={project}>
-                        <div className="flex items-center">
+                        <div className="flex items-center w-full">
                           <Pencil className="mr-2 h-4 w-4" />
                           <span>Edit</span>
                         </div>
@@ -86,10 +123,28 @@ export default function ProjectCard({ project, onUpdate, onDelete, className, st
                           onSave={handleDescriptionSave}
                       />
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onDelete(project.id)} className="text-destructive">
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      <span>Delete</span>
-                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive">
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          <span>Delete</span>
+                      </DropdownMenuItem>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This action cannot be undone. This will permanently delete your project.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+
               </DropdownMenuContent>
               </DropdownMenu>
             )}

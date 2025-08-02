@@ -1,8 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { useState, useEffect } from 'react';
 import {
   Sheet,
   SheetContent,
@@ -13,31 +12,41 @@ import {
 } from '@/components/ui/sheet';
 import ProjectForm from './project-form';
 import type { Project } from '@/lib/types';
+import { useActionState } from 'react';
+import { updateProject } from '@/app/actions';
+import { useToast } from '@/hooks/use-toast';
+
+const initialState = {
+  success: false,
+  message: '',
+  project: undefined,
+};
 
 export default function EditProjectSheet({
   project,
-  onSave,
   children,
 }: {
   project: Project;
-  onSave: (updatedProject: Project) => void;
   children: React.ReactNode;
 }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [formState, formAction] = useActionState(updateProject, initialState);
+  const { toast } = useToast();
+  
+  const actionWithId = (formData: FormData) => {
+    formData.append('id', project.id);
+    formData.append('createdAt', project.createdAt);
+    formAction(formData);
+  }
 
-  const handleSave = async (formData: FormData) => {
-    const updatedProject: Project = {
-        id: project.id,
-        createdAt: project.createdAt,
-        title: formData.get('title') as string,
-        description: formData.get('description') as string,
-        technologies: (formData.get('technologies') as string).split(',').map(t => t.trim()),
-        keywords: (formData.get('keywords') as string).split(',').map(k => k.trim()),
-        imageUrl: formData.get('imageUrl') as string,
-    };
-    onSave(updatedProject);
-    setIsOpen(false);
-  };
+  useEffect(() => {
+    if (formState.success) {
+      toast({ title: 'Project updated!', description: 'Your project has been saved.' });
+      setIsOpen(false);
+    } else if (formState.message) {
+      toast({ variant: 'destructive', title: 'Error', description: formState.message });
+    }
+  }, [formState, toast]);
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -51,7 +60,7 @@ export default function EditProjectSheet({
         </SheetHeader>
         <div className="py-4">
           <ProjectForm
-            action={handleSave}
+            action={actionWithId}
             initialData={project}
             onCancel={() => setIsOpen(false)}
           />

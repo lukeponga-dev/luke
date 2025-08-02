@@ -14,11 +14,23 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { Project } from '@/lib/types';
-import { MoreVertical, Trash2, Pencil, Wand2, Loader2 } from 'lucide-react';
+import { MoreVertical, Trash2, Pencil, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import ImproveDescriptionDialog from './improve-description-dialog';
 import EditProjectSheet from './edit-project-sheet';
@@ -35,36 +47,29 @@ export default function ProjectTable({ projects }: ProjectTableProps) {
   const { toast } = useToast();
   
   const handleDescriptionSave = (project: Project, newDescription: string) => {
-    onUpdate({ ...project, description: newDescription });
-  };
-  
-  const onUpdate = (updatedProject: Project) => {
-    startTransition(async () => {
+     startTransition(async () => {
       const formData = new FormData();
-      formData.append('id', updatedProject.id);
-      formData.append('title', updatedProject.title);
-      formData.append('description', updatedProject.description);
-      formData.append('technologies', updatedProject.technologies.join(','));
-      formData.append('keywords', updatedProject.keywords.join(','));
-      formData.append('imageUrl', updatedProject.imageUrl);
-      formData.append('createdAt', updatedProject.createdAt);
-
-      const result = await updateProject({}, formData);
-      if (result.success) {
-        toast({ title: 'Project updated!', description: `${updatedProject.title} has been updated.` });
-      } else {
-        toast({ variant: 'destructive', title: 'Error', description: result.message });
-      }
+      Object.keys(project).forEach(key => {
+        const value = project[key as keyof Project];
+        if (key === 'description') {
+          formData.append(key, newDescription);
+        } else if (Array.isArray(value)) {
+          formData.append(key, value.join(','));
+        } else {
+          formData.append(key, value);
+        }
+      });
+      await updateProject({}, formData);
+      toast({ title: 'Description updated!' });
     });
   };
-
+  
   const onDelete = (projectId: string) => {
     startTransition(async () => {
       await deleteProject(projectId);
       toast({ variant: 'destructive', title: 'Project deleted.' });
     });
   };
-
 
   return (
     <div className="border rounded-lg relative">
@@ -108,7 +113,7 @@ export default function ProjectTable({ projects }: ProjectTableProps) {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                         <EditProjectSheet project={project} onSave={(updated) => onUpdate(updated)}>
+                         <EditProjectSheet project={project}>
                             <div className="flex items-center w-full">
                               <Pencil className="mr-2 h-4 w-4" />
                               <span>Edit</span>
@@ -121,10 +126,27 @@ export default function ProjectTable({ projects }: ProjectTableProps) {
                               onSave={(newDescription) => handleDescriptionSave(project, newDescription)}
                           />
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => onDelete(project.id)} className="text-destructive">
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        <span>Delete</span>
-                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive">
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              <span>Delete</span>
+                          </DropdownMenuItem>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This action cannot be undone. This will permanently delete your project.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => onDelete(project.id)}>Delete</AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>
