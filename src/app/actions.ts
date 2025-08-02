@@ -81,7 +81,7 @@ export async function logout() {
 }
 
 
-export async function addProject(project: Project) {
+export async function addProject(project: Project): Promise<Project> {
     const projects = await getProjects();
     projects.unshift(project);
     await saveProjects(projects);

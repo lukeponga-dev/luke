@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useTransition } from 'react';
@@ -77,14 +78,19 @@ export default function AddProjectSheet({ children, onProjectAdded }: AddProject
         imageUrl: values.imageUrl || `https://placehold.co/600x400.png`,
         createdAt: new Date().toISOString(),
       };
-      const newProject = await addProject(newProjectData);
-      if (onProjectAdded && newProject) {
-        onProjectAdded(newProject);
+      
+      try {
+        const newProject = await addProject(newProjectData);
+        if (onProjectAdded && newProject) {
+          onProjectAdded(newProject);
+        }
+        toast({ title: 'Project added!', description: `${values.title} has been added to your portfolio.` });
+        form.reset();
+        setKeywords([]);
+        setIsOpen(false);
+      } catch (error) {
+        toast({ variant: 'destructive', title: 'Error', description: 'Failed to add project.' });
       }
-      toast({ title: 'Project added!', description: `${values.title} has been added to your portfolio.` });
-      form.reset();
-      setKeywords([]);
-      setIsOpen(false);
     });
   };
   
