@@ -3,13 +3,10 @@ import PortfolioPage from '@/components/portfolio/portfolio-page';
 import { Button } from '@/components/ui/button';
 import { getProjects } from '@/lib/project-fs';
 import { Github, Heart, Linkedin, Mail } from 'lucide-react';
-import { cookies } from 'next/headers';
 
 export default async function Home() {
   const projects = await getProjects();
-  const isLoggedIn = cookies().has('auth');
-
-
+  
   return (
     <div className="flex min-h-screen w-full flex-col">
       <Header />
@@ -92,7 +89,7 @@ export default async function Home() {
           </div>
         </section>
 
-        <PortfolioPage initialProjects={projects} readOnly={!isLoggedIn} />
+        <PortfolioPage initialProjects={projects} readOnly={true} />
 
         <section id="education" className="mb-12 mt-12">
           <h2 className="text-3xl font-headline font-bold mb-6 text-center">
