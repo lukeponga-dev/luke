@@ -58,11 +58,11 @@ export default function AddProjectSheet({ children, onProjectAdded }: AddProject
 
     startSuggestingTransition(async () => {
       const result = await getSuggestedKeywords({ description, technologies });
-      if (result.success && result.keywords) {
+      if (result && result.success && result.keywords) {
         setKeywords(prev => [...new Set([...prev, ...result.keywords])]);
         toast({ title: 'Keywords suggested', description: 'AI has suggested some new keywords.' });
       } else {
-        toast({ variant: 'destructive', title: 'Error', description: result.error });
+        toast({ variant: 'destructive', title: 'Error', description: result?.error || 'An unexpected error occurred.' });
       }
     });
   };

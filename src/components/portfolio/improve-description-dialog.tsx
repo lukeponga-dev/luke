@@ -32,13 +32,13 @@ export default function ImproveDescriptionDialog({ description, onSave }: Improv
   const handleGenerate = () => {
     startTransition(async () => {
       const result = await getImprovedDescription({ description });
-      if (result.success && result.improvedDescription) {
+      if (result && result.success && result.improvedDescription) {
         setImprovedDescription(result.improvedDescription);
       } else {
         toast({
           variant: 'destructive',
           title: 'Error',
-          description: result.error || 'Could not generate a new description.',
+          description: result?.error || 'Could not generate a new description.',
         });
       }
     });
