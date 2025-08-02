@@ -1,5 +1,18 @@
 [
   {
+    "id": "1754176087048",
+    "title": "Astronomy photo of the day api",
+    "description": "Test net framework ",
+    "technologies": [
+      "HTML"
+    ],
+    "keywords": [
+      "Api"
+    ],
+    "imageUrl": "https://placehold.co/600x400.png",
+    "createdAt": "2025-08-02T23:08:07.048Z"
+  },
+  {
     "id": "1",
     "title": "New Zealand Website",
     "description": "A responsive site showcasing NZ's culture and tourism with interactive elements.",
@@ -78,16 +91,17 @@
     "createdAt": "2024-01-10T00:00:00.000Z"
   },
   {
-    "id":"5",
-    "title":"astronomy Images web app",
-    "description":"A web app that allows users to explore stunning images of the universe, powered by NASA's API.",
+    "id": "5",
+    "title": "astronomy Images web app",
+    "description": "A web app that allows users to explore stunning images of the universe, powered by NASA's API.",
     "technologies": [
-       "API Integration",
-       "React"
+      "API Integration",
+      "React"
     ],
-    "keywords":["API"],
-    "imageUrl":"https://lukeponga-dev.github.io/images/cosmic.png",
-    "createdAt":"2025-08-03"
+    "keywords": [
+      "API"
+    ],
+    "imageUrl": "https://lukeponga-dev.github.io/images/cosmic.png",
+    "createdAt": "2025-08-03"
   }
-
 ]
