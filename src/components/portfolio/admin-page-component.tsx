@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -24,19 +25,14 @@ import {
 } from "@/components/ui/alert-dialog";
 
 export default function AdminPageComponent({ initialProjects }: { initialProjects: Project[] }) {
-  const [projects, setProjects] = useState(initialProjects);
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
 
   const handleLogout = async () => {
     await logout();
   };
   
-  const onProjectAdded = (newProject: Project) => {
-    setProjects(prev => [newProject, ...prev]);
-  }
-
   const onProjectUpdated = (updatedProject: Project) => {
-    setProjects(prev => prev.map(p => p.id === updatedProject.id ? updatedProject : p));
+    // This is now handled by revalidation, but we might need it for optimistic updates later
   }
 
   const handleDeleteClick = (project: Project) => {
@@ -46,10 +42,7 @@ export default function AdminPageComponent({ initialProjects }: { initialProject
   const handleConfirmDelete = async () => {
     if (projectToDelete) {
       try {
-        const res = await deleteProject(projectToDelete.id);
-        if (res.success) {
-          setProjects(prev => prev.filter(p => p.id !== projectToDelete.id));
-        }
+        await deleteProject(projectToDelete.id);
       } catch (error) {
         console.error(error);
       } finally {
@@ -69,7 +62,7 @@ export default function AdminPageComponent({ initialProjects }: { initialProject
         <main className="flex-1 container py-8">
           <div className="flex items-center justify-between mb-8">
             <h1 className="font-headline text-3xl font-bold">Admin Dashboard</h1>
-            <AddProjectSheet onProjectAdded={onProjectAdded} />
+            <AddProjectSheet />
           </div>
           <div className="bg-card rounded-lg shadow-md">
             <Table>
@@ -82,7 +75,7 @@ export default function AdminPageComponent({ initialProjects }: { initialProject
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {projects.map((project) => (
+                {initialProjects.map((project) => (
                   <TableRow key={project.id}>
                     <TableCell>
                       <Image

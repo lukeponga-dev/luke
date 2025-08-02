@@ -1,3 +1,4 @@
+
 // @ts-nocheck
 'use server';
 
@@ -64,7 +65,7 @@ export async function addProject(prevState: any, formData: FormData) {
         revalidatePath('/');
         revalidatePath('/admin');
 
-        return { success: true, message: 'Project added successfully.', project: newProject };
+        return { success: true, message: 'Project added successfully.' };
     } catch (error) {
         console.error(error);
         return { success: false, message: 'An error occurred while adding the project.' };

@@ -17,13 +17,11 @@ import { useFormStatus } from 'react-dom';
 import { addProject } from '@/app/actions';
 import { useEffect, useRef, useState, useActionState } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import type { Project } from '@/lib/types';
 import { Loader2 } from 'lucide-react';
 
 const initialState = {
   success: false,
   message: '',
-  project: null,
 };
 
 function SubmitButton() {
@@ -36,21 +34,18 @@ function SubmitButton() {
   );
 }
 
-export function AddProjectSheet({ onProjectAdded }: { 
-    onProjectAdded: (project: Project) => void,
-}) {
+export function AddProjectSheet() {
   const [state, formAction] = useActionState(addProject, initialState);
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    if (state && state.success && state.project) {
+    if (state && state.success) {
       toast({
         title: 'Success!',
         description: 'New project has been added.',
       });
-      onProjectAdded(state.project);
       setOpen(false);
       formRef.current?.reset();
     } else if (state && state.message && !state.success) {
@@ -60,7 +55,7 @@ export function AddProjectSheet({ onProjectAdded }: {
         variant: 'destructive',
       });
     }
-  }, [state, toast, onProjectAdded]);
+  }, [state, toast]);
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
