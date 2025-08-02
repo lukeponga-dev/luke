@@ -1,7 +1,6 @@
 
-import { genkit, type GenkitMemory } from '@genkit-ai/next';
+import { genkit } from 'genkit/next';
 import { googleAI } from '@genkit-ai/googleai';
-import { GENKIT_CLIENT_HEADER } from 'genkit';
 
 export const ai = genkit({
   plugins: [
