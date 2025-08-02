@@ -96,8 +96,8 @@ export default function AdminPageComponent({ initialProjects }: { initialProject
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
-                          <DropdownMenuItem asChild>
-                            <EditProjectSheet project={project} onProjectUpdated={onProjectUpdated} />
+                           <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                            <EditProjectSheet project={project} />
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             className="text-destructive"
