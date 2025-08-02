@@ -69,7 +69,7 @@ export default function AddProjectSheet({ children, onProjectAdded }: AddProject
 
   const onSubmit = (values: z.infer<typeof projectSchema>) => {
     startSavingTransition(async () => {
-      const newProject: Project = {
+      const newProjectData: Project = {
         id: crypto.randomUUID(),
         ...values,
         technologies: values.technologies.split(',').map(t => t.trim()).filter(Boolean),
@@ -77,8 +77,8 @@ export default function AddProjectSheet({ children, onProjectAdded }: AddProject
         imageUrl: values.imageUrl || `https://placehold.co/600x400.png`,
         createdAt: new Date().toISOString(),
       };
-      await addProject(newProject);
-      if (onProjectAdded) {
+      const newProject = await addProject(newProjectData);
+      if (onProjectAdded && newProject) {
         onProjectAdded(newProject);
       }
       toast({ title: 'Project added!', description: `${values.title} has been added to your portfolio.` });

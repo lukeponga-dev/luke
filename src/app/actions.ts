@@ -87,6 +87,7 @@ export async function addProject(project: Project) {
     await saveProjects(projects);
     revalidatePath('/');
     revalidatePath('/admin');
+    return project;
 }
 
 export async function updateProject(project: Project) {
