@@ -14,11 +14,6 @@ export default function Header({ children }: HeaderProps) {
             Portfolio Pilot
           </h1>
         </div>
-        <div className="flex flex-1 items-center justify-end space-x-4">
-          <nav className="flex items-center space-x-1">
-            {children}
-          </nav>
-        </div>
       </div>
     </header>
   );

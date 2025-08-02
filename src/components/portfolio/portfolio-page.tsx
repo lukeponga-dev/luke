@@ -2,7 +2,6 @@
 
 import { useState, useMemo } from 'react';
 import type { Project } from '@/lib/types';
-import Header from '@/components/layout/header';
 import AddProjectSheet from './add-project-sheet';
 import ProjectCard from './project-card';
 import { Input } from '@/components/ui/input';
@@ -66,14 +65,7 @@ export default function PortfolioPage({ initialProjects, headerActions }: Portfo
   }, [projects, searchTerm, sortBy]);
 
   return (
-    <div className="flex min-h-screen w-full flex-col">
-      <Header>
-        <div className="flex items-center gap-2">
-          {headerActions}
-          <AddProjectSheet onProjectAdd={handleProjectAdd} onProjectsImport={handleProjectsImport} />
-        </div>
-      </Header>
-      <main className="flex-1 container py-8">
+    <>
         <div className="flex flex-col md:flex-row gap-4 justify-between items-center mb-8">
             <h2 className="text-3xl font-headline font-bold tracking-tight">Featured Projects</h2>
             <div className="flex gap-4 w-full md:w-auto">
@@ -97,6 +89,7 @@ export default function PortfolioPage({ initialProjects, headerActions }: Portfo
                         <SelectItem value="title-desc">Title (Z-A)</SelectItem>
                     </SelectContent>
                 </Select>
+                 <AddProjectSheet onProjectAdd={handleProjectAdd} onProjectsImport={handleProjectsImport} />
             </div>
         </div>
         
@@ -118,7 +111,6 @@ export default function PortfolioPage({ initialProjects, headerActions }: Portfo
                 <p className="text-muted-foreground mt-2">Try adjusting your search or add a new project.</p>
             </div>
         )}
-      </main>
-    </div>
+    </>
   );
 }
