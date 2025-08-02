@@ -7,3 +7,7 @@ export type Project = {
   imageUrl: string;
   createdAt: string; // ISO date string
 };
+
+export interface SessionData {
+  isLoggedIn: boolean;
+}
