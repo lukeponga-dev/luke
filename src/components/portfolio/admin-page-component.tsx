@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useTransition } from 'react';
 import Header from '@/components/layout/header';
 import { logout, updateProject, deleteProject } from '@/app/actions';
 import { Button } from '@/components/ui/button';
@@ -10,6 +10,7 @@ import type { Project } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import ProjectTable from '@/components/portfolio/project-table';
 import AddProjectSheet from '@/components/portfolio/add-project-sheet';
+import Link from 'next/link';
 
 type AdminPageProps = {
   initialProjects: Project[];
@@ -34,7 +35,7 @@ export default function AdminPageComponent({ initialProjects }: AdminPageProps) 
     startTransition(async () => {
       try {
         await deleteProject(projectId);
-        toast({ variant: 'destructive', title: 'Project deleted.' });
+        toast({ title: 'Project deleted.' });
       } catch (error) {
         toast({ variant: 'destructive', title: 'Error', description: 'Failed to delete project.' });
       }
@@ -64,7 +65,12 @@ export default function AdminPageComponent({ initialProjects }: AdminPageProps) 
       <main className="flex-1 container py-8">
         <div className="flex justify-between items-center mb-8">
             <h1 className="text-3xl font-headline font-bold">Manage Projects</h1>
-            <AddProjectSheet />
+            <div className="flex items-center gap-4">
+              <Link href="/admin/crud">
+                <Button>CRUD Page</Button>
+              </Link>
+              <AddProjectSheet />
+            </div>
         </div>
         <ProjectTable
           projects={initialProjects}

@@ -81,12 +81,25 @@ export async function logout() {
 }
 
 
-export async function addProject(project: Project) {
+export async function addProject(prevState: any, formData: FormData) {
+    const project: Project = {
+        id: formData.get('id') as string,
+        title: formData.get('title') as string,
+        description: formData.get('description') as string,
+        technologies: (formData.get('technologies') as string).split(',').map(t => t.trim()),
+        keywords: (formData.get('keywords') as string).split(',').map(k => k.trim()),
+        imageUrl: formData.get('imageUrl') as string,
+        createdAt: formData.get('createdAt') as string,
+    };
+
     const projects = await getProjects();
     projects.unshift(project);
     await saveProjects(projects);
+
     revalidatePath('/');
     revalidatePath('/admin');
+    
+    return { success: true, message: "Project added successfully." };
 }
 
 export async function updateProject(project: Project) {
