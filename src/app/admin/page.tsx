@@ -3,7 +3,7 @@
 
 import { useState, useTransition, useEffect } from 'react';
 import Header from '@/components/layout/header';
-import { logout, updateProject, deleteProject, addProject } from '@/app/actions';
+import { logout, updateProject, deleteProject } from '@/app/actions';
 import { Button } from '@/components/ui/button';
 import { LogOut, Loader2 } from 'lucide-react';
 import type { Project } from '@/lib/types';
