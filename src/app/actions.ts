@@ -1,3 +1,4 @@
+
 'use server';
 
 import { improveDescription } from '@/ai/flows/improve-description';
@@ -55,7 +56,6 @@ export async function login(prevState: { error: string }, formData: FormData) {
     const parsed = loginSchema.safeParse(values);
 
     if (parsed.success) {
-        // IMPORTANT: In a real application, use a secure password hash comparison.
         if (parsed.data.password === (process.env.ADMIN_PASSWORD || 'password')) {
             const cookieStore = cookies();
             cookieStore.set('auth', 'true', {
