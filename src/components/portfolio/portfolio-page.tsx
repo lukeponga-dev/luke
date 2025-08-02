@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useMemo, useTransition, useEffect } from 'react';
+import { useState, useMemo, useTransition } from 'react';
 import type { Project } from '@/lib/types';
 import AddProjectSheet from './add-project-sheet';
 import ProjectCard from './project-card';
@@ -17,34 +17,37 @@ type PortfolioPageProps = {
 };
 
 export default function PortfolioPage({ initialProjects, readOnly = false }: PortfolioPageProps) {
-  const [projects, setProjects] = useState<Project[]>(initialProjects);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('newest');
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
-  
-  useEffect(() => {
-    setProjects(initialProjects);
-  }, [initialProjects]);
 
   const handleProjectUpdate = (updatedProject: Project) => {
+    if (readOnly) return;
     startTransition(async () => {
-      await updateProject(updatedProject);
-      setProjects(prev => prev.map(p => p.id === updatedProject.id ? updatedProject : p));
-      toast({ title: "Project updated!", description: `${updatedProject.title} has been updated.` });
+      try {
+        await updateProject(updatedProject);
+        toast({ title: "Project updated!", description: `${updatedProject.title} has been updated.` });
+      } catch (error) {
+        toast({ variant: 'destructive', title: 'Error', description: 'Failed to update project.' });
+      }
     });
   };
 
   const handleProjectDelete = (projectId: string) => {
+    if (readOnly) return;
     startTransition(async () => {
-      await deleteProject(projectId);
-      setProjects(prev => prev.filter(p => p.id !== projectId));
-      toast({ variant: "destructive", title: "Project deleted." });
+      try {
+        await deleteProject(projectId);
+        toast({ variant: "destructive", title: "Project deleted." });
+      } catch(error) {
+        toast({ variant: 'destructive', title: 'Error', description: 'Failed to delete project.' });
+      }
     });
   };
 
   const filteredAndSortedProjects = useMemo(() => {
-    return (projects || [])
+    return (initialProjects || [])
       .filter(project => {
         const searchContent = [
           project.title,
@@ -67,7 +70,7 @@ export default function PortfolioPage({ initialProjects, readOnly = false }: Por
             return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
         }
       });
-  }, [projects, searchTerm, sortBy]);
+  }, [initialProjects, searchTerm, sortBy]);
   
   if(!initialProjects) {
     return (
@@ -102,7 +105,7 @@ export default function PortfolioPage({ initialProjects, readOnly = false }: Por
                         <SelectItem value="title-desc">Title (Z-A)</SelectItem>
                     </SelectContent>
                 </Select>
-                 {!readOnly && <AddProjectSheet onProjectAdded={(newProject) => setProjects(prev => [newProject, ...prev])}/>}
+                 {!readOnly && <AddProjectSheet />}
             </div>
         </div>
         

@@ -35,10 +35,9 @@ const projectSchema = z.object({
 
 type AddProjectSheetProps = {
   children?: React.ReactNode;
-  onProjectAdded?: (project: Project) => void;
 };
 
-export default function AddProjectSheet({ children, onProjectAdded }: AddProjectSheetProps) {
+export default function AddProjectSheet({ children }: AddProjectSheetProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isSuggesting, startSuggestingTransition] = useTransition();
   const [isSaving, startSavingTransition] = useTransition();
@@ -80,10 +79,7 @@ export default function AddProjectSheet({ children, onProjectAdded }: AddProject
       };
       
       try {
-        const newProject = await addProject(newProjectData);
-        if (onProjectAdded && newProject) {
-          onProjectAdded(newProject);
-        }
+        await addProject(newProjectData);
         toast({ title: 'Project added!', description: `${values.title} has been added to your portfolio.` });
         form.reset();
         setKeywords([]);

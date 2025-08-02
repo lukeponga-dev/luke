@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useTransition, useEffect } from 'react';
+import { useState, useTransition } from 'react';
 import Header from '@/components/layout/header';
 import { logout, updateProject, deleteProject } from '@/app/actions';
 import { Button } from '@/components/ui/button';
@@ -16,38 +16,34 @@ type AdminPageProps = {
 };
 
 export default function AdminPageComponent({ initialProjects }: AdminPageProps) {
-  const [projects, setProjects] = useState<Project[]>(initialProjects);
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
 
-  useEffect(() => {
-    setProjects(initialProjects);
-  }, [initialProjects]);
-
-
   const handleProjectUpdate = (updatedProject: Project) => {
     startTransition(async () => {
-      await updateProject(updatedProject);
-      setProjects((prev) => prev.map((p) => (p.id === updatedProject.id ? updatedProject : p)));
-      toast({ title: 'Project updated!', description: `${updatedProject.title} has been updated.` });
+      try {
+        await updateProject(updatedProject);
+        toast({ title: 'Project updated!', description: `${updatedProject.title} has been updated.` });
+      } catch (error) {
+        toast({ variant: 'destructive', title: 'Error', description: 'Failed to update project.' });
+      }
     });
   };
 
   const handleProjectDelete = (projectId: string) => {
     startTransition(async () => {
-      await deleteProject(projectId);
-      setProjects((prev) => prev.filter((p) => p.id !== projectId));
-      toast({ variant: 'destructive', title: 'Project deleted.' });
+      try {
+        await deleteProject(projectId);
+        toast({ variant: 'destructive', title: 'Project deleted.' });
+      } catch (error) {
+        toast({ variant: 'destructive', title: 'Error', description: 'Failed to delete project.' });
+      }
     });
   };
   
-  const handleProjectAdd = (addedProject: Project) => {
-    setProjects(prev => [addedProject, ...prev]);
-  }
-
-  if (projects === undefined) {
+  if (initialProjects === undefined) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div className="flex items-center justify-center h-screen">
         <Loader2 className="h-8 w-8 animate-spin" />
       </div>
     );
@@ -68,10 +64,10 @@ export default function AdminPageComponent({ initialProjects }: AdminPageProps) 
       <main className="flex-1 container py-8">
         <div className="flex justify-between items-center mb-8">
             <h1 className="text-3xl font-headline font-bold">Manage Projects</h1>
-            <AddProjectSheet onProjectAdded={handleProjectAdd} />
+            <AddProjectSheet />
         </div>
         <ProjectTable
-          projects={projects}
+          projects={initialProjects}
           onUpdate={handleProjectUpdate}
           onDelete={handleProjectDelete}
           isPending={isPending}

@@ -63,7 +63,7 @@ export async function login(prevState: { error: string }, formData: FormData) {
 
     if (parsed.success) {
         if (parsed.data.password === (process.env.ADMIN_PASSWORD || 'password')) {
-            (cookies() as any).set('auth', 'true', {
+            cookies().set('auth', 'true', {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production',
                 maxAge: 60 * 60 * 24, // 1 day
@@ -76,18 +76,17 @@ export async function login(prevState: { error: string }, formData: FormData) {
 }
 
 export async function logout() {
-    (cookies() as any).delete('auth');
+    cookies().delete('auth');
     redirect('/login');
 }
 
 
-export async function addProject(project: Project): Promise<Project> {
+export async function addProject(project: Project) {
     const projects = await getProjects();
     projects.unshift(project);
     await saveProjects(projects);
     revalidatePath('/');
     revalidatePath('/admin');
-    return project;
 }
 
 export async function updateProject(project: Project) {
