@@ -53,8 +53,7 @@ export async function login(prevState: { error: string }, formData: FormData) {
 
     if (parsed.success) {
         // IMPORTANT: In a real application, use a secure password hash comparison.
-        // You can change the password here.
-        if (parsed.data.password === 'password') {
+        if (parsed.data.password === process.env.ADMIN_PASSWORD) {
             const cookieStore = cookies();
             cookieStore.set('auth', 'true', {
                 httpOnly: true,
