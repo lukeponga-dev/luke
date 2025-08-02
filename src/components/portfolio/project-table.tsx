@@ -21,6 +21,7 @@ import type { Project } from '@/lib/types';
 import { MoreVertical, Trash2, Pencil, Wand2, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import ImproveDescriptionDialog from './improve-description-dialog';
+import EditProjectSheet from './edit-project-sheet';
 
 type ProjectTableProps = {
   projects: Project[];
@@ -75,9 +76,13 @@ export default function ProjectTable({ projects, onUpdate, onDelete, isPending =
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem disabled>
-                        <Pencil className="mr-2 h-4 w-4" />
-                        <span>Edit</span>
+                       <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                         <EditProjectSheet project={project}>
+                            <div className="flex items-center">
+                              <Pencil className="mr-2 h-4 w-4" />
+                              <span>Edit</span>
+                            </div>
+                          </EditProjectSheet>
                       </DropdownMenuItem>
                       <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                           <ImproveDescriptionDialog

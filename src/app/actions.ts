@@ -82,7 +82,7 @@ export async function logout() {
 
 
 export async function addProject(prevState: any, formData: FormData) {
-    const project: Project = {
+    const projectData = {
         id: formData.get('id') as string,
         title: formData.get('title') as string,
         description: formData.get('description') as string,
@@ -93,7 +93,7 @@ export async function addProject(prevState: any, formData: FormData) {
     };
 
     const projects = await getProjects();
-    projects.unshift(project);
+    projects.unshift(projectData);
     await saveProjects(projects);
 
     revalidatePath('/');
@@ -102,15 +102,27 @@ export async function addProject(prevState: any, formData: FormData) {
     return { success: true, message: "Project added successfully." };
 }
 
-export async function updateProject(project: Project) {
+export async function updateProject(prevState: any, formData: FormData) {
+    const projectData: Project = {
+        id: formData.get('id') as string,
+        title: formData.get('title') as string,
+        description: formData.get('description') as string,
+        technologies: (formData.get('technologies') as string).split(',').map(t => t.trim()),
+        keywords: (formData.get('keywords') as string).split(',').map(k => k.trim()),
+        imageUrl: formData.get('imageUrl') as string,
+        createdAt: formData.get('createdAt') as string,
+    };
+
     const projects = await getProjects();
-    const index = projects.findIndex(p => p.id === project.id);
+    const index = projects.findIndex(p => p.id === projectData.id);
     if (index !== -1) {
-        projects[index] = project;
+        projects[index] = projectData;
         await saveProjects(projects);
         revalidatePath('/');
         revalidatePath('/admin');
+        return { success: true, message: "Project updated successfully." };
     }
+    return { success: false, message: "Project not found." };
 }
 
 export async function deleteProject(projectId: string) {
