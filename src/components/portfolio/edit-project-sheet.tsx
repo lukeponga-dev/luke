@@ -7,9 +7,9 @@ import { Label } from "@/components/ui/label";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Textarea } from "@/components/ui/textarea";
 import { Project } from "@/lib/types";
-import { useFormState, useFormStatus } from "react-dom";
+import { useFormStatus } from "react-dom";
 import { useToast } from "@/hooks/use-toast";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useActionState } from "react";
 import { updateProject, generateDescriptionAction } from "@/app/actions";
 import { Loader2, Sparkles } from "lucide-react";
 
@@ -32,7 +32,7 @@ function SubmitButton() {
 
 export function EditProjectSheet({ project }: { project: Project }) {
   const [open, setOpen] = useState(false);
-  const [state, formAction] = useFormState(updateProject, initialState);
+  const [state, formAction] = useActionState(updateProject, initialState);
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
   const [isGenerating, setIsGenerating] = useState(false);
