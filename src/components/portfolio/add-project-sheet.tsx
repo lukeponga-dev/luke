@@ -14,7 +14,7 @@ import { Input } from '../ui/input';
 import { Textarea } from '../ui/textarea';
 import { useFormState, useFormStatus } from 'react-dom';
 import { addProject } from '@/app/actions';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState, useActionState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import type { Project } from '@/lib/types';
 import { Loader2 } from 'lucide-react';
@@ -35,37 +35,37 @@ function SubmitButton() {
   );
 }
 
-export function AddProjectSheet({ children, onProjectAdded, open, onOpenChange }: { 
-    children: React.ReactNode, 
+export function AddProjectSheet({ onProjectAdded }: { 
     onProjectAdded: (project: Project) => void,
-    open: boolean,
-    onOpenChange: (open: boolean) => void,
 }) {
-  const [formState, formAction] = useFormState(addProject, initialState);
+  const [state, formAction] = useActionState(addProject, initialState);
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    if (formState.success && formState.project) {
+    if (state.success && state.project) {
       toast({
         title: 'Success!',
         description: 'New project has been added.',
       });
-      onProjectAdded(formState.project);
-      onOpenChange(false);
+      onProjectAdded(state.project);
+      setOpen(false);
       formRef.current?.reset();
-    } else if (formState.message) {
+    } else if (state.message && !state.success) {
        toast({
         title: 'Error',
-        description: formState.message,
+        description: state.message,
         variant: 'destructive',
       });
     }
-  }, [formState, toast, onProjectAdded, onOpenChange]);
+  }, [state, toast, onProjectAdded]);
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetTrigger asChild>{children}</SheetTrigger>
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger asChild>
+        <Button>Add Project</Button>
+      </SheetTrigger>
       <SheetContent>
         <SheetHeader>
           <SheetTitle>Add New Project</SheetTitle>

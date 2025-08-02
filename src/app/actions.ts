@@ -21,8 +21,7 @@ export async function login(prevState: any, formData: FormData) {
     isLoggedIn: true,
   };
   await session.save();
-
-  return { success: true, message: 'Logged in successfully' };
+  redirect('/admin');
 }
 
 export async function logout() {
