@@ -12,9 +12,10 @@ import { useToast } from '@/hooks/use-toast';
 
 type PortfolioPageProps = {
   initialProjects: Project[];
+  headerActions?: React.ReactNode;
 };
 
-export default function PortfolioPage({ initialProjects }: PortfolioPageProps) {
+export default function PortfolioPage({ initialProjects, headerActions }: PortfolioPageProps) {
   const [projects, setProjects] = useState<Project[]>(initialProjects);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('newest');
@@ -45,7 +46,7 @@ export default function PortfolioPage({ initialProjects }: PortfolioPageProps) {
           project.title,
           project.description,
           ...project.technologies,
-          ...project.keywords,
+          ...(project.keywords || []),
         ].join(' ').toLowerCase();
         return searchContent.includes(searchTerm.toLowerCase());
       })
@@ -67,11 +68,14 @@ export default function PortfolioPage({ initialProjects }: PortfolioPageProps) {
   return (
     <div className="flex min-h-screen w-full flex-col">
       <Header>
-        <AddProjectSheet onProjectAdd={handleProjectAdd} onProjectsImport={handleProjectsImport} />
+        <div className="flex items-center gap-2">
+          {headerActions}
+          <AddProjectSheet onProjectAdd={handleProjectAdd} onProjectsImport={handleProjectsImport} />
+        </div>
       </Header>
       <main className="flex-1 container py-8">
         <div className="flex flex-col md:flex-row gap-4 justify-between items-center mb-8">
-            <h2 className="text-3xl font-headline font-bold tracking-tight">My Projects</h2>
+            <h2 className="text-3xl font-headline font-bold tracking-tight">Featured Projects</h2>
             <div className="flex gap-4 w-full md:w-auto">
                 <div className="relative flex-grow md:flex-grow-0">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
