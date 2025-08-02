@@ -10,7 +10,6 @@ import type { Project } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import ProjectTable from '@/components/portfolio/project-table';
 import AddProjectSheet from '@/components/portfolio/add-project-sheet';
-import { getProjects } from '@/lib/project-fs';
 
 type AdminPageProps = {
   initialProjects: Project[];
@@ -81,6 +80,9 @@ function AdminPageComponent({ initialProjects }: AdminPageProps) {
     </div>
   );
 }
+
+// We must import getProjects from the fs library.
+import { getProjects } from '@/lib/project-fs';
 
 export default async function AdminPage() {
   const projects = await getProjects();
