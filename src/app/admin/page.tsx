@@ -82,7 +82,6 @@ function AdminPageComponent({ initialProjects }: AdminPageProps) {
   );
 }
 
-
 export default async function AdminPage() {
   const projects = await getProjects();
 
