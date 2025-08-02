@@ -18,13 +18,16 @@ export async function getImprovedDescription(data: { description: string }) {
   try {
     const validatedData = improveDescriptionSchema.parse(data);
     const result = await improveDescription(validatedData);
-    return { success: true, improvedDescription: result.improvedDescription };
+    if (result && result.improvedDescription) {
+      return { success: true, improvedDescription: result.improvedDescription };
+    }
+    return { success: false, error: 'Failed to get an improved description.'}
   } catch (error) {
     console.error(error);
     if (error instanceof z.ZodError) {
       return { success: false, error: error.errors.map(e => e.message).join(', ') };
     }
-    return { success: false, error: 'Failed to improve description.' };
+    return { success: false, error: 'Failed to improve description due to an unexpected error.' };
   }
 }
 
@@ -37,13 +40,16 @@ export async function getSuggestedKeywords(data: { description: string; technolo
     try {
         const validatedData = suggestKeywordsSchema.parse(data);
         const result = await suggestKeywords(validatedData);
-        return { success: true, keywords: result.keywords };
+        if (result && result.keywords) {
+          return { success: true, keywords: result.keywords };
+        }
+        return { success: false, error: 'Failed to get suggested keywords.' };
     } catch (error) {
         console.error(error);
         if (error instanceof z.ZodError) {
           return { success: false, error: error.errors.map(e => e.message).join(', ') };
         }
-        return { success: false, error: 'Failed to suggest keywords.' };
+        return { success: false, error: 'Failed to suggest keywords due to an unexpected error.' };
     }
 }
 
