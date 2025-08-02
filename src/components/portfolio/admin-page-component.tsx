@@ -10,7 +10,6 @@ import type { Project } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import ProjectTable from '@/components/portfolio/project-table';
 import AddProjectSheet from '@/components/portfolio/add-project-sheet';
-import Link from 'next/link';
 
 type AdminPageProps = {
   initialProjects: Project[];
@@ -66,9 +65,6 @@ export default function AdminPageComponent({ initialProjects }: AdminPageProps) 
         <div className="flex justify-between items-center mb-8">
             <h1 className="text-3xl font-headline font-bold">Manage Projects</h1>
             <div className="flex items-center gap-4">
-              <Link href="/admin/crud">
-                <Button>CRUD Page</Button>
-              </Link>
               <AddProjectSheet />
             </div>
         </div>
