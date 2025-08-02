@@ -1,8 +1,7 @@
 
 'use client';
 
-import { useState, useTransition, useEffect } from 'react';
-import { useFormState } from 'react-dom';
+import { useState, useTransition, useEffect, useActionState } from 'react';
 import {
   Sheet,
   SheetContent,
@@ -43,7 +42,7 @@ export default function AddProjectSheet({ children }: AddProjectSheetProps) {
   const [keywords, setKeywords] = useState<string[]>([]);
   const { toast } = useToast();
 
-  const [formState, formAction] = useFormState(addProject, initialState);
+  const [formState, formAction] = useActionState(addProject, initialState);
 
   useEffect(() => {
     if (formState.success) {

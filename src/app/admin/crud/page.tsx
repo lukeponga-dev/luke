@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useActionState } from 'react';
 import { Project } from '@/lib/types';
 import { getProjects } from '@/lib/project-fs';
 import { addProject, updateProject, deleteProject } from '@/app/actions';
@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { useFormState } from 'react-dom';
 
 export default function AdminCrudPage() {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -23,8 +22,7 @@ export default function AdminCrudPage() {
     fetchProjects();
   }, []);
 
-  const [addState, addAction] = useFormState(addProject, { error: '' });
-  const [updateState, updateAction] = useFormState(updateProject, { error: '' });
+  const [addState, addAction] = useActionState(addProject, { success: false, message: '' });
 
   const handleAddClick = () => {
     setSelectedProject(null);
@@ -63,12 +61,17 @@ export default function AdminCrudPage() {
     if (selectedProject) {
       await updateProject(projectData);
     } else {
-      await addProject(projectData);
+       const result = await addProject(null, formData);
+       if (!result.success) {
+        // Handle error, maybe show a toast
+        console.error(result.message);
+       }
     }
     const fetchedProjects = await getProjects();
     setProjects(fetchedProjects);
     closeSheet();
   };
+
 
   return (
     <div className="container mx-auto p-4">
@@ -96,6 +99,8 @@ export default function AdminCrudPage() {
             <SheetTitle>{selectedProject ? 'Edit Project' : 'Add Project'}</SheetTitle>
           </SheetHeader>
           <form action={handleSubmit} className="space-y-4 mt-4">
+             <input type="hidden" name="id" value={selectedProject?.id || crypto.randomUUID()} />
+             <input type="hidden" name="createdAt" value={selectedProject?.createdAt || new Date().toISOString()} />
             <div>
               <label htmlFor="title">Title</label>
               <Input id="title" name="title" defaultValue={selectedProject?.title} required />
