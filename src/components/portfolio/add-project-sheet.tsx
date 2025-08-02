@@ -78,11 +78,11 @@ export function AddProjectSheet() {
 
 
   useEffect(() => {
-    if (state && state.message) {
+    if (state.message) {
       if (state.success) {
         toast({
           title: 'Success!',
-          description: 'New project has been added.',
+          description: state.message,
         });
         setOpen(false);
         formRef.current?.reset();
