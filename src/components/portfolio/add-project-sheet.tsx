@@ -14,10 +14,10 @@ import { Label } from '../ui/label';
 import { Input } from '../ui/input';
 import { Textarea } from '../ui/textarea';
 import { useFormStatus } from 'react-dom';
-import { addProject } from '@/app/actions';
+import { addProject, generateDescriptionAction } from '@/app/actions';
 import { useEffect, useRef, useState, useActionState } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Sparkles } from 'lucide-react';
 
 const initialState = {
   success: false,
@@ -39,21 +39,60 @@ export function AddProjectSheet() {
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
   const [open, setOpen] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
 
-  useEffect(() => {
-    if (state && state.success) {
+  const handleGenerateDescription = async () => {
+    if (!formRef.current) return;
+    const formData = new FormData(formRef.current);
+    const title = formData.get('title') as string;
+    const technologies = formData.get('technologies') as string;
+
+    if (!title || !technologies) {
       toast({
-        title: 'Success!',
-        description: 'New project has been added.',
-      });
-      setOpen(false);
-      formRef.current?.reset();
-    } else if (state && state.message && !state.success) {
-       toast({
-        title: 'Error',
-        description: state.message,
+        title: 'Info needed',
+        description: 'Please enter a title and technologies to generate a description.',
         variant: 'destructive',
       });
+      return;
+    }
+    
+    setIsGenerating(true);
+    try {
+      const description = await generateDescriptionAction({ title, technologies });
+      if (formRef.current) {
+        const descriptionField = formRef.current.elements.namedItem('description') as HTMLTextAreaElement;
+        if (descriptionField) {
+          descriptionField.value = description;
+        }
+      }
+    } catch (error) {
+       toast({
+        title: 'Error',
+        description: 'Failed to generate description.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+
+  useEffect(() => {
+    if (state && state.message) {
+      if (state.success) {
+        toast({
+          title: 'Success!',
+          description: 'New project has been added.',
+        });
+        setOpen(false);
+        formRef.current?.reset();
+      } else {
+        toast({
+          title: 'Error',
+          description: state.message,
+          variant: 'destructive',
+        });
+      }
     }
   }, [state, toast]);
 
@@ -75,12 +114,18 @@ export function AddProjectSheet() {
             <Input id="title" name="title" required />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea id="description" name="description" required />
-          </div>
-          <div className="space-y-2">
             <Label htmlFor="technologies">Technologies (comma-separated)</Label>
             <Input id="technologies" name="technologies" required />
+          </div>
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <Label htmlFor="description">Description</Label>
+               <Button type="button" variant="outline" size="sm" onClick={handleGenerateDescription} disabled={isGenerating}>
+                {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+                Generate with AI
+              </Button>
+            </div>
+            <Textarea id="description" name="description" required />
           </div>
           <div className="space-y-2">
             <Label htmlFor="keywords">Keywords (comma-separated)</Label>

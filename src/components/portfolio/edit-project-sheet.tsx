@@ -9,9 +9,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Project } from "@/lib/types";
 import { useFormState, useFormStatus } from "react-dom";
 import { useToast } from "@/hooks/use-toast";
-import { useEffect, useState } from "react";
-import { updateProject } from "@/app/actions";
-import { Loader2 } from "lucide-react";
+import { useEffect, useState, useRef } from "react";
+import { updateProject, generateDescriptionAction } from "@/app/actions";
+import { Loader2, Sparkles } from "lucide-react";
 
 const initialState = {
   success: false,
@@ -34,6 +34,44 @@ export function EditProjectSheet({ project }: { project: Project }) {
   const [open, setOpen] = useState(false);
   const [state, formAction] = useFormState(updateProject, initialState);
   const { toast } = useToast();
+  const formRef = useRef<HTMLFormElement>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  
+  const handleGenerateDescription = async () => {
+    if (!formRef.current) return;
+    const formData = new FormData(formRef.current);
+    const title = formData.get('title') as string;
+    const technologies = formData.get('technologies') as string;
+
+    if (!title || !technologies) {
+      toast({
+        title: 'Info needed',
+        description: 'Please enter a title and technologies to generate a description.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    setIsGenerating(true);
+    try {
+      const description = await generateDescriptionAction({ title, technologies });
+      if (formRef.current) {
+        const descriptionField = formRef.current.elements.namedItem('description') as HTMLTextAreaElement;
+        if (descriptionField) {
+          descriptionField.value = description;
+        }
+      }
+    } catch (error) {
+       toast({
+        title: 'Error',
+        description: 'Failed to generate description.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
 
   useEffect(() => {
     if (state.message) {
@@ -57,19 +95,25 @@ export function EditProjectSheet({ project }: { project: Project }) {
         <SheetHeader>
           <SheetTitle>Edit Project</SheetTitle>
         </SheetHeader>
-        <form action={formAction} className="space-y-4 mt-8">
+        <form ref={formRef} action={formAction} className="space-y-4 mt-8">
           <input type="hidden" name="id" value={project.id} />
           <div className="space-y-2">
             <Label htmlFor="title">Title</Label>
             <Input id="title" name="title" defaultValue={project.title} required />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea id="description" name="description" defaultValue={project.description} required />
-          </div>
-          <div className="space-y-2">
             <Label htmlFor="technologies">Technologies (comma-separated)</Label>
             <Input id="technologies" name="technologies" defaultValue={project.technologies.join(', ')} required />
+          </div>
+          <div className="space-y-2">
+             <div className="flex justify-between items-center">
+                <Label htmlFor="description">Description</Label>
+                <Button type="button" variant="outline" size="sm" onClick={handleGenerateDescription} disabled={isGenerating}>
+                    {isGenerating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Sparkles className="mr-2 h-4 w-4" />}
+                    Generate with AI
+                </Button>
+            </div>
+            <Textarea id="description" name="description" defaultValue={project.description} required />
           </div>
           <div className="space-y-2">
             <Label htmlFor="keywords">Keywords (comma-separated)</Label>

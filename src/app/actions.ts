@@ -9,6 +9,8 @@ import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { getProjects, saveProjects } from '@/lib/project-fs';
 import type { Project } from '@/lib/types';
+import { generateDescription } from '@/ai/flows/generate-description-flow';
+import type { GenerateDescriptionInput } from '@/ai/flows/generate-description-flow';
 
 export async function login(prevState: any, formData: FormData) {
   const password = formData.get('password');
@@ -140,4 +142,12 @@ export async function updateProject(prevState: any, formData: FormData) {
         console.error(error);
         return { success: false, message: 'An error occurred while updating the project.' };
     }
+}
+
+export async function generateDescriptionAction(input: GenerateDescriptionInput): Promise<string> {
+    const session = await getIronSession(cookies(), sessionOptions);
+    if (!session.user?.isLoggedIn) {
+        throw new Error('Unauthorized');
+    }
+    return await generateDescription(input);
 }
