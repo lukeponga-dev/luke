@@ -24,6 +24,13 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      // Exclude this specific module from the client-side bundle
+      config.resolve.alias['@opentelemetry/exporter-jaeger'] = false;
+    }
+    return config;
+  },
 };
 
 export default nextConfig;
