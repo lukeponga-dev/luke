@@ -27,6 +27,7 @@ type ProjectCardProps = {
   onUpdate: (updatedProject: Project) => void;
   onDelete: (projectId: string) => void;
   className?: string;
+  style?: React.CSSProperties;
 };
 
 const aiHints: Record<string, string> = {
@@ -37,13 +38,13 @@ const aiHints: Record<string, string> = {
   '5': 'cryptocurrency chart',
 };
 
-export default function ProjectCard({ project, onUpdate, onDelete, className }: ProjectCardProps) {
+export default function ProjectCard({ project, onUpdate, onDelete, className, style }: ProjectCardProps) {
   const handleDescriptionSave = (newDescription: string) => {
     onUpdate({ ...project, description: newDescription });
   };
   
   return (
-    <Card className={`flex flex-col h-full shadow-md hover:shadow-xl transition-shadow duration-300 ${className}`}>
+    <Card style={style} className={`flex flex-col h-full shadow-md hover:shadow-xl transition-shadow duration-300 ${className}`}>
       <CardHeader>
         <div className="aspect-[3/2] relative w-full mb-4">
             <Image
@@ -99,10 +100,10 @@ export default function ProjectCard({ project, onUpdate, onDelete, className }: 
         <div className="w-full">
             <h4 className="text-xs font-semibold mb-2 text-muted-foreground uppercase tracking-wider">Keywords</h4>
             <div className="flex flex-wrap gap-1">
-            {project.keywords.slice(0, 5).map((keyword) => (
+            {(project.keywords || []).slice(0, 5).map((keyword) => (
                 <Badge key={keyword} variant="outline">{keyword}</Badge>
             ))}
-            {project.keywords.length > 5 && <Badge variant="outline">...</Badge>}
+            {(project.keywords?.length || 0) > 5 && <Badge variant="outline">...</Badge>}
             </div>
         </div>
       </CardFooter>
