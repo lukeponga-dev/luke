@@ -4,7 +4,6 @@ import { getProjects } from '@/lib/project-fs';
 import { PlusCircle } from 'lucide-react';
 import ProjectTable from '@/components/portfolio/project-table';
 import AddProjectSheet from '@/components/portfolio/add-project-sheet';
-import type { Project } from '@/lib/types';
 
 export default async function ProjectsPage() {
   const projects = await getProjects();
