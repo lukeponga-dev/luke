@@ -1,10 +1,10 @@
 
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useEffect } from 'react';
 import Header from '@/components/layout/header';
 import { getProjects } from '@/lib/project-fs';
-import { logout, updateProject, deleteProject } from '@/app/actions';
+import { logout, updateProject, deleteProject, addProject } from '@/app/actions';
 import { Button } from '@/components/ui/button';
 import { LogOut, Loader2 } from 'lucide-react';
 import type { Project } from '@/lib/types';
@@ -20,6 +20,11 @@ function AdminPageComponent({ initialProjects }: AdminPageProps) {
   const [projects, setProjects] = useState<Project[]>(initialProjects);
   const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
+
+  useEffect(() => {
+    setProjects(initialProjects);
+  }, [initialProjects]);
+
 
   const handleProjectUpdate = (updatedProject: Project) => {
     startTransition(async () => {
@@ -41,7 +46,7 @@ function AdminPageComponent({ initialProjects }: AdminPageProps) {
     setProjects(prev => [addedProject, ...prev]);
   }
 
-  if (!initialProjects) {
+  if (!projects) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -78,20 +83,8 @@ function AdminPageComponent({ initialProjects }: AdminPageProps) {
 }
 
 
-export default function AdminLoader() {
-  const [projects, setProjects] = useState<Project[] | null>(null);
-  
-  React.useEffect(() => {
-    getProjects().then(setProjects);
-  }, []);
-
-  if (projects === null) {
-    return (
-      <div className="flex min-h-screen w-full items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
-  }
+export default async function AdminPage() {
+  const projects = await getProjects();
 
   return <AdminPageComponent initialProjects={projects} />;
 }
