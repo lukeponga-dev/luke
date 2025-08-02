@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -44,7 +45,7 @@ export function AddProjectSheet({ onProjectAdded }: {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    if (state.success && state.project) {
+    if (state && state.success && state.project) {
       toast({
         title: 'Success!',
         description: 'New project has been added.',
@@ -52,7 +53,7 @@ export function AddProjectSheet({ onProjectAdded }: {
       onProjectAdded(state.project);
       setOpen(false);
       formRef.current?.reset();
-    } else if (state.message && !state.success) {
+    } else if (state && state.message && !state.success) {
        toast({
         title: 'Error',
         description: state.message,
