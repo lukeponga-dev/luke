@@ -78,7 +78,7 @@ export function AddProjectSheet() {
 
 
   useEffect(() => {
-    if (state.message) {
+    if (state && state.message) {
       if (state.success) {
         toast({
           title: 'Success!',
