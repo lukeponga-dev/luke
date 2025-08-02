@@ -1,11 +1,13 @@
 import Header from '@/components/layout/header';
 import PortfolioPage from '@/components/portfolio/portfolio-page';
-import { projects as initialProjects } from '@/lib/data';
+import { getProjects } from '@/lib/project-fs';
 import { logout } from '@/app/actions';
 import { Button } from '@/components/ui/button';
 import { LogOut } from 'lucide-react';
 
-export default function AdminPage() {
+export default async function AdminPage() {
+  const projects = await getProjects();
+  
   return (
     <div className="flex min-h-screen w-full flex-col">
       <Header>
@@ -19,7 +21,7 @@ export default function AdminPage() {
         </div>
       </Header>
       <main className="flex-1 container py-8">
-        <PortfolioPage initialProjects={initialProjects} />
+        <PortfolioPage initialProjects={projects} />
       </main>
     </div>
   );

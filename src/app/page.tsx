@@ -1,10 +1,12 @@
 import Header from '@/components/layout/header';
 import PortfolioPage from '@/components/portfolio/portfolio-page';
 import { Button } from '@/components/ui/button';
-import { projects as initialProjects } from '@/lib/data';
+import { getProjects } from '@/lib/project-fs';
 import { Github, Heart, Linkedin, Mail } from 'lucide-react';
 
-export default function Home() {
+export default async function Home() {
+  const projects = await getProjects();
+
   return (
     <div className="flex min-h-screen w-full flex-col">
       <Header />
@@ -87,7 +89,7 @@ export default function Home() {
           </div>
         </section>
 
-        <PortfolioPage initialProjects={initialProjects} readOnly={true} />
+        <PortfolioPage initialProjects={projects} readOnly={true} />
 
         <section id="education" className="mb-12 mt-12">
           <h2 className="text-3xl font-headline font-bold mb-6 text-center">

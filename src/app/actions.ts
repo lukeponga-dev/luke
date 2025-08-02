@@ -2,9 +2,12 @@
 
 import { improveDescription } from '@/ai/flows/improve-description';
 import { suggestKeywords } from '@/ai/flows/suggest-keywords';
+import { getProjects, saveProjects } from '@/lib/project-fs';
+import { Project } from '@/lib/types';
 import { z } from 'zod';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { revalidatePath } from 'next/cache';
 
 const improveDescriptionSchema = z.object({
   description: z.string().min(10, 'Description must be at least 10 characters.'),
@@ -53,7 +56,7 @@ export async function login(prevState: { error: string }, formData: FormData) {
 
     if (parsed.success) {
         // IMPORTANT: In a real application, use a secure password hash comparison.
-        if (parsed.data.password === process.env.ADMIN_PASSWORD) {
+        if (parsed.data.password === (process.env.ADMIN_PASSWORD || 'password')) {
             const cookieStore = cookies();
             cookieStore.set('auth', 'true', {
                 httpOnly: true,
@@ -71,4 +74,40 @@ export async function logout() {
     const cookieStore = cookies();
     cookieStore.delete('auth');
     redirect('/login');
+}
+
+
+export async function addProject(project: Project) {
+    const projects = await getProjects();
+    projects.unshift(project);
+    await saveProjects(projects);
+    revalidatePath('/');
+    revalidatePath('/admin');
+}
+
+export async function updateProject(project: Project) {
+    const projects = await getProjects();
+    const index = projects.findIndex(p => p.id === project.id);
+    if (index !== -1) {
+        projects[index] = project;
+        await saveProjects(projects);
+        revalidatePath('/');
+        revalidatePath('/admin');
+    }
+}
+
+export async function deleteProject(projectId: string) {
+    const projects = await getProjects();
+    const updatedProjects = projects.filter(p => p.id !== projectId);
+    await saveProjects(updatedProjects);
+    revalidatePath('/');
+    revalidatePath('/admin');
+}
+
+export async function importProjects(newProjects: Project[]) {
+    const projects = await getProjects();
+    const updatedProjects = [...newProjects, ...projects.filter(p => !newProjects.some(np => np.id === p.id))];
+    await saveProjects(updatedProjects);
+    revalidatePath('/');
+    revalidatePath('/admin');
 }

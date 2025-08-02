@@ -21,7 +21,7 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import type { Project } from '@/lib/types';
 import { PlusCircle, Wand2, Loader2, Upload } from 'lucide-react';
-import { getSuggestedKeywords } from '@/app/actions';
+import { getSuggestedKeywords, addProject, importProjects } from '@/app/actions';
 import { Badge } from '../ui/badge';
 import { ScrollArea } from '../ui/scroll-area';
 
@@ -33,14 +33,13 @@ const projectSchema = z.object({
 });
 
 type AddProjectSheetProps = {
-  onProjectAdd: (project: Project) => void;
-  onProjectsImport: (projects: Project[]) => void;
   children?: React.ReactNode;
 };
 
-export default function AddProjectSheet({ onProjectAdd, onProjectsImport, children }: AddProjectSheetProps) {
+export default function AddProjectSheet({ children }: AddProjectSheetProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [isPending, startTransition] = useTransition();
+  const [isSuggesting, startSuggestingTransition] = useTransition();
+  const [isSaving, startSavingTransition] = useTransition();
   const [keywords, setKeywords] = useState<string[]>([]);
   const { toast } = useToast();
 
@@ -56,7 +55,7 @@ export default function AddProjectSheet({ onProjectAdd, onProjectsImport, childr
       return;
     }
 
-    startTransition(async () => {
+    startSuggestingTransition(async () => {
       const result = await getSuggestedKeywords({ description, technologies });
       if (result.success && result.keywords) {
         setKeywords(prev => [...new Set([...prev, ...result.keywords])]);
@@ -68,19 +67,21 @@ export default function AddProjectSheet({ onProjectAdd, onProjectsImport, childr
   };
 
   const onSubmit = (values: z.infer<typeof projectSchema>) => {
-    const newProject: Project = {
-      id: crypto.randomUUID(),
-      ...values,
-      technologies: values.technologies.split(',').map(t => t.trim()).filter(Boolean),
-      keywords,
-      imageUrl: values.imageUrl || `https://placehold.co/600x400.png`,
-      createdAt: new Date().toISOString(),
-    };
-    onProjectAdd(newProject);
-    toast({ title: 'Project added!', description: `${values.title} has been added to your portfolio.` });
-    form.reset();
-    setKeywords([]);
-    setIsOpen(false);
+    startSavingTransition(async () => {
+      const newProject: Project = {
+        id: crypto.randomUUID(),
+        ...values,
+        technologies: values.technologies.split(',').map(t => t.trim()).filter(Boolean),
+        keywords,
+        imageUrl: values.imageUrl || `https://placehold.co/600x400.png`,
+        createdAt: new Date().toISOString(),
+      };
+      await addProject(newProject);
+      toast({ title: 'Project added!', description: `${values.title} has been added to your portfolio.` });
+      form.reset();
+      setKeywords([]);
+      setIsOpen(false);
+    });
   };
   
   const handleFileImport = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -93,9 +94,11 @@ export default function AddProjectSheet({ onProjectAdd, onProjectsImport, childr
           const importedProjects: Project[] = JSON.parse(content);
           // Basic validation
           if (Array.isArray(importedProjects) && importedProjects.every(p => p.id && p.title)) {
-            onProjectsImport(importedProjects);
-            toast({ title: 'Success', description: `${importedProjects.length} projects imported.` });
-            setIsOpen(false);
+            startSavingTransition(async () => {
+              await importProjects(importedProjects);
+              toast({ title: 'Success', description: `${importedProjects.length} projects imported.` });
+              setIsOpen(false);
+            });
           } else {
             throw new Error('Invalid project structure in JSON file.');
           }
@@ -122,7 +125,7 @@ export default function AddProjectSheet({ onProjectAdd, onProjectsImport, childr
           <SheetDescription>Fill in the details of your project. Click save when you're done.</SheetDescription>
         </SheetHeader>
         <ScrollArea className="flex-grow pr-6 -mr-6">
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 py-4">
+        <form className="space-y-4 py-4">
           <div>
             <Label htmlFor="title">Title</Label>
             <Input id="title" {...form.register('title')} />
@@ -146,8 +149,8 @@ export default function AddProjectSheet({ onProjectAdd, onProjectsImport, childr
           <div>
             <div className="flex justify-between items-center mb-2">
                 <Label>Keywords</Label>
-                <Button type="button" variant="outline" size="sm" onClick={handleSuggestKeywords} disabled={isPending}>
-                    {isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
+                <Button type="button" variant="outline" size="sm" onClick={handleSuggestKeywords} disabled={isSuggesting}>
+                    {isSuggesting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
                     Suggest
                 </Button>
             </div>
@@ -167,9 +170,12 @@ export default function AddProjectSheet({ onProjectAdd, onProjectsImport, childr
             </label>
             <div className="flex gap-2">
               <SheetClose asChild>
-                <Button type="button" variant="ghost">Cancel</Button>
+                <Button type="button" variant="ghost" disabled={isSaving}>Cancel</Button>
               </SheetClose>
-              <Button type="submit" onClick={form.handleSubmit(onSubmit)}>Save Project</Button>
+              <Button type="button" onClick={form.handleSubmit(onSubmit)} disabled={isSaving}>
+                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Save Project
+              </Button>
             </div>
           </div>
         </SheetFooter>

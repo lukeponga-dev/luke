@@ -1,17 +1,17 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useTransition } from 'react';
 import type { Project } from '@/lib/types';
 import AddProjectSheet from './add-project-sheet';
 import ProjectCard from './project-card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search } from 'lucide-react';
+import { Search, Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { updateProject, deleteProject } from '@/app/actions';
 
 type PortfolioPageProps = {
   initialProjects: Project[];
-  headerActions?: React.ReactNode;
   readOnly?: boolean;
 };
 
@@ -19,28 +19,27 @@ export default function PortfolioPage({ initialProjects, readOnly = false }: Por
   const [projects, setProjects] = useState<Project[]>(initialProjects);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('newest');
+  const [isPending, startTransition] = useTransition();
   const { toast } = useToast();
 
-  const handleProjectAdd = (project: Project) => {
-    setProjects(prev => [project, ...prev]);
-  };
-
-  const handleProjectsImport = (importedProjects: Project[]) => {
-    setProjects(prev => [...importedProjects, ...prev.filter(p => !importedProjects.some(ip => ip.id === p.id))]);
-  };
-
   const handleProjectUpdate = (updatedProject: Project) => {
-    setProjects(prev => prev.map(p => p.id === updatedProject.id ? updatedProject : p));
-    toast({ title: "Project updated!", description: `${updatedProject.title} has been updated.` });
+    startTransition(async () => {
+      await updateProject(updatedProject);
+      setProjects(prev => prev.map(p => p.id === updatedProject.id ? updatedProject : p));
+      toast({ title: "Project updated!", description: `${updatedProject.title} has been updated.` });
+    });
   };
 
   const handleProjectDelete = (projectId: string) => {
-    setProjects(prev => prev.filter(p => p.id !== projectId));
-    toast({ variant: "destructive", title: "Project deleted." });
+    startTransition(async () => {
+      await deleteProject(projectId);
+      setProjects(prev => prev.filter(p => p.id !== projectId));
+      toast({ variant: "destructive", title: "Project deleted." });
+    });
   };
 
   const filteredAndSortedProjects = useMemo(() => {
-    return projects
+    return (projects || [])
       .filter(project => {
         const searchContent = [
           project.title,
@@ -64,6 +63,14 @@ export default function PortfolioPage({ initialProjects, readOnly = false }: Por
         }
       });
   }, [projects, searchTerm, sortBy]);
+  
+  if(!initialProjects) {
+    return (
+        <div className="flex items-center justify-center h-64">
+            <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+    )
+  }
 
   return (
     <>
@@ -90,7 +97,7 @@ export default function PortfolioPage({ initialProjects, readOnly = false }: Por
                         <SelectItem value="title-desc">Title (Z-A)</SelectItem>
                     </SelectContent>
                 </Select>
-                 {!readOnly && <AddProjectSheet onProjectAdd={handleProjectAdd} onProjectsImport={handleProjectsImport} />}
+                 {!readOnly && <AddProjectSheet />}
             </div>
         </div>
         
@@ -102,6 +109,7 @@ export default function PortfolioPage({ initialProjects, readOnly = false }: Por
               onUpdate={handleProjectUpdate}
               onDelete={handleProjectDelete}
               readOnly={readOnly}
+              isPending={isPending}
               className="animate-in fade-in-0 zoom-in-95 duration-500"
               style={{ animationDelay: `${index * 50}ms`, animationFillMode: 'backwards' }}
             />

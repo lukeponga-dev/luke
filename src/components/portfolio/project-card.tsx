@@ -18,7 +18,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import type { Project } from '@/lib/types';
-import { MoreVertical, Trash2, Pencil } from 'lucide-react';
+import { MoreVertical, Trash2, Pencil, Loader2 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import ImproveDescriptionDialog from './improve-description-dialog';
 
@@ -29,6 +29,7 @@ type ProjectCardProps = {
   className?: string;
   style?: React.CSSProperties;
   readOnly?: boolean;
+  isPending?: boolean;
 };
 
 const aiHints: Record<string, string> = {
@@ -38,13 +39,18 @@ const aiHints: Record<string, string> = {
   '4': 'space galaxy',
 };
 
-export default function ProjectCard({ project, onUpdate, onDelete, className, style, readOnly = false }: ProjectCardProps) {
+export default function ProjectCard({ project, onUpdate, onDelete, className, style, readOnly = false, isPending = false }: ProjectCardProps) {
   const handleDescriptionSave = (newDescription: string) => {
     onUpdate({ ...project, description: newDescription });
   };
   
   return (
-    <Card style={style} className={`flex flex-col h-full shadow-md hover:shadow-xl transition-shadow duration-300 ${className}`}>
+    <Card style={style} className={`relative flex flex-col h-full shadow-md hover:shadow-xl transition-shadow duration-300 ${className}`}>
+      {isPending && (
+        <div className="absolute inset-0 bg-background/50 flex items-center justify-center z-10">
+          <Loader2 className="h-6 w-6 animate-spin" />
+        </div>
+      )}
       <CardHeader>
         <div className="aspect-[3/2] relative w-full mb-4">
             <Image
@@ -60,7 +66,7 @@ export default function ProjectCard({ project, onUpdate, onDelete, className, st
             {!readOnly && (
               <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
+                  <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0" disabled={isPending}>
                   <MoreVertical className="h-4 w-4" />
                   </Button>
               </DropdownMenuTrigger>
