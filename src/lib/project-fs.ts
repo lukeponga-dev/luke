@@ -1,25 +1,27 @@
-import { existsSync } from 'fs';
-
-import { promises as fs } from 'fs';
-import path from 'path';
+import { firestore } from './firebase';
 import type { Project } from './types';
 
-const projectsFilePath = path.join(process.cwd(), 'projects.json');
+const projectsCollection = firestore.collection('projects');
 
 export async function getProjects(): Promise<Project[]> {
-  try {
-    const data = await fs.readFile(projectsFilePath, 'utf-8');
-    return JSON.parse(data);
-  } catch (error) {
-    // If the file doesn't exist, return an empty array
-    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-      return [];
-    }
-    throw error;
-  }
+  const snapshot = await projectsCollection.orderBy('createdAt', 'desc').get();
+  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Project));
 }
 
-export async function saveProjects(projects: Project[]): Promise<void> {
-  const data = JSON.stringify(projects, null, 2);
-  await fs.writeFile(projectsFilePath, data, 'utf-8');
+export async function addProject(project: Omit<Project, 'id' | 'createdAt'>): Promise<Project> {
+  const newProjectRef = projectsCollection.doc();
+  const createdAt = new Date().toISOString();
+  const newProject = { ...project, id: newProjectRef.id, createdAt };
+  await newProjectRef.set(newProject);
+  return newProject;
+}
+
+export async function updateProject(id: string, updates: Partial<Project>): Promise<Project> {
+  await projectsCollection.doc(id).update(updates);
+  const updatedDoc = await projectsCollection.doc(id).get();
+  return { id, ...updatedDoc.data() } as Project;
+}
+
+export async function deleteProject(id: string): Promise<void> {
+  await projectsCollection.doc(id).delete();
 }

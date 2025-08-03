@@ -1,4 +1,3 @@
-
 // @ts-nocheck
 'use server';
 
@@ -7,10 +6,8 @@ import { sessionOptions } from '@/lib/session';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
-import { getProjects, saveProjects } from '@/lib/project-fs';
+import { addProject as addProjectToDb, deleteProject as deleteProjectFromDb, updateProject as updateProjectInDb } from '@/lib/project-fs';
 import type { Project } from '@/lib/types';
-import { generateDescription } from '@/ai/flows/generate-description-flow';
-import type { GenerateDescriptionInput } from '@/ai/flows/generate-description-flow';
 
 export async function login(prevState: any, formData: FormData) {
   const password = formData.get('password');
@@ -50,24 +47,18 @@ export async function addProject(prevState: any, formData: FormData) {
             return { success: false, message: 'Missing required fields.' };
         }
 
-        const projects = await getProjects();
-        const newProject: Project = {
-            id: String(Date.now()),
+        const newProject = await addProjectToDb({
             title,
             description,
             technologies,
             keywords,
             imageUrl,
-            createdAt: new Date().toISOString(),
-        };
-
-        const updatedProjects = [newProject, ...projects];
-        await saveProjects(updatedProjects);
+        });
         
         revalidatePath('/');
         revalidatePath('/admin');
 
-        return { success: true, message: 'Project added successfully.' };
+        return { success: true, message: 'Project added successfully.', project: newProject };
     } catch (error) {
         console.error(error);
         return { success: false, message: 'An error occurred while adding the project.' };
@@ -81,9 +72,7 @@ export async function deleteProject(projectId: string) {
     }
 
     try {
-        const projects = await getProjects();
-        const updatedProjects = projects.filter(p => p.id !== projectId);
-        await saveProjects(updatedProjects);
+        await deleteProjectFromDb(projectId);
         
         revalidatePath('/');
         revalidatePath('/admin');
@@ -113,26 +102,13 @@ export async function updateProject(prevState: any, formData: FormData) {
             return { success: false, message: 'Missing required fields.' };
         }
 
-        const projects = await getProjects();
-        const projectIndex = projects.findIndex(p => p.id === id);
-
-        if (projectIndex === -1) {
-            return { success: false, message: 'Project not found.' };
-        }
-
-        const updatedProject: Project = {
-            ...projects[projectIndex],
+        const updatedProject = await updateProjectInDb(id, {
             title,
             description,
             technologies,
             keywords,
             imageUrl,
-        };
-
-        const updatedProjects = [...projects];
-        updatedProjects[projectIndex] = updatedProject;
-
-        await saveProjects(updatedProjects);
+        });
         
         revalidatePath('/');
         revalidatePath('/admin');
@@ -142,12 +118,4 @@ export async function updateProject(prevState: any, formData: FormData) {
         console.error(error);
         return { success: false, message: 'An error occurred while updating the project.' };
     }
-}
-
-export async function generateDescriptionAction(input: GenerateDescriptionInput): Promise<string> {
-    const session = await getIronSession(cookies(), sessionOptions);
-    if (!session.user?.isLoggedIn) {
-        throw new Error('Unauthorized');
-    }
-    return await generateDescription(input);
 }
