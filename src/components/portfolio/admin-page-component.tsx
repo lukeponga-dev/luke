@@ -1,10 +1,10 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useActionState, useEffect } from 'react';
 import type { Project } from '@/lib/types';
 import { Button } from '@/components/ui/button';
-import { logout, deleteProject } from '@/app/actions';
+import { logout, deleteProject as deleteProjectAction } from '@/app/actions';
 import Header from '@/components/layout/header';
 import { MoreVertical } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -23,9 +23,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { useToast } from '@/hooks/use-toast';
 
 export default function AdminPageComponent({ initialProjects }: { initialProjects: Project[] }) {
+  const [projects, setProjects] = useState<Project[]>(initialProjects);
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
+  const { toast } = useToast();
 
   const handleLogout = async () => {
     await logout();
@@ -35,12 +38,39 @@ export default function AdminPageComponent({ initialProjects }: { initialProject
     setProjectToDelete(project);
   };
 
+  const onProjectAdded = (newProject: Project) => {
+    setProjects(currentProjects => [newProject, ...currentProjects]);
+  };
+  
+  const onProjectUpdated = (updatedProject: Project) => {
+    setProjects(currentProjects => 
+        currentProjects.map(p => p.id === updatedProject.id ? updatedProject : p)
+    );
+  };
+
   const handleConfirmDelete = async () => {
     if (projectToDelete) {
       try {
-        await deleteProject(projectToDelete.id);
+        const result = await deleteProjectAction(projectToDelete.id);
+         if (result.success) {
+            toast({
+                title: 'Success',
+                description: 'Project deleted successfully.',
+            });
+            setProjects(currentProjects => currentProjects.filter(p => p.id !== projectToDelete.id));
+        } else {
+            toast({
+                title: 'Error',
+                description: result.message,
+                variant: 'destructive',
+            });
+        }
       } catch (error) {
-        console.error(error);
+        toast({
+            title: 'Error',
+            description: 'An unexpected error occurred.',
+            variant: 'destructive',
+        });
       } finally {
         setProjectToDelete(null);
       }
@@ -58,7 +88,7 @@ export default function AdminPageComponent({ initialProjects }: { initialProject
         <main className="flex-1 container py-8">
           <div className="flex items-center justify-between mb-8">
             <h1 className="font-headline text-3xl font-bold">Admin Dashboard</h1>
-            <AddProjectSheet />
+            <AddProjectSheet onProjectAdded={onProjectAdded} />
           </div>
           <div className="bg-card rounded-lg shadow-md">
             <Table>
@@ -71,7 +101,7 @@ export default function AdminPageComponent({ initialProjects }: { initialProject
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {initialProjects.map((project) => (
+                {projects.map((project) => (
                   <TableRow key={project.id}>
                     <TableCell>
                       <Image
@@ -93,7 +123,7 @@ export default function AdminPageComponent({ initialProjects }: { initialProject
                         </DropdownMenuTrigger>
                         <DropdownMenuContent>
                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                            <EditProjectSheet project={project} />
+                            <EditProjectSheet project={project} onProjectUpdated={onProjectUpdated} />
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             className="text-destructive"

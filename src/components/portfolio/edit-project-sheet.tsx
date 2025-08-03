@@ -16,7 +16,7 @@ import { Loader2, Sparkles } from "lucide-react";
 const initialState = {
   success: false,
   message: '',
-  project: undefined,
+  project: undefined as Project | undefined,
 };
 
 function SubmitButton() {
@@ -30,7 +30,7 @@ function SubmitButton() {
 }
 
 
-export function EditProjectSheet({ project }: { project: Project }) {
+export function EditProjectSheet({ project, onProjectUpdated }: { project: Project, onProjectUpdated: (project: Project) => void }) {
   const [open, setOpen] = useState(false);
   const [state, formAction] = useActionState(updateProject, initialState);
   const { toast } = useToast();
@@ -74,17 +74,18 @@ export function EditProjectSheet({ project }: { project: Project }) {
 
 
   useEffect(() => {
-    if (state.message) {
+    if (state && state.message) {
       toast({
         title: state.success ? 'Success' : 'Error',
         description: state.message,
         variant: state.success ? 'default' : 'destructive',
       });
-      if (state.success) {
+      if (state.success && state.project) {
+        onProjectUpdated(state.project);
         setOpen(false);
       }
     }
-  }, [state, toast]);
+  }, [state, toast, onProjectUpdated]);
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -117,7 +118,7 @@ export function EditProjectSheet({ project }: { project: Project }) {
           </div>
           <div className="space-y-2">
             <Label htmlFor="keywords">Keywords (comma-separated)</Label>
-            <Input id="keywords" name="keywords" defaultValue={project.keywords.join(', ')} />
+            <Input id="keywords" name="keywords" defaultValue={project.keywords?.join(', ')} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="imageUrl">Image URL</Label>
