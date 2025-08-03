@@ -1,7 +1,32 @@
 # Settings to manage and configure a Firebase App Hosting backend.
 # https://firebase.google.com/docs/app-hosting/configure
 
+# This is the default configuration for all environments.
+# You can override these settings for specific environments by creating
+# a file named `apphosting.ENVIRONMENT_NAME.yaml`.
+# For example, `apphosting.live.yaml` for your production environment.
+
 runConfig:
-  # Increase this value if you'd like to automatically spin up
-  # more instances in response to increased traffic.
-  maxInstances: 1
+  # The amount of CPU to allocate to each instance.
+  cpu: 1
+  # The amount of memory to allocate to each instance.
+  memoryMiB: 512
+  # The maximum number of concurrent requests each instance can handle.
+  concurrency: 80
+  # The maximum number of instances to spin up in response to traffic.
+  maxInstances: 2
+
+# Environment variables available to your application at runtime.
+# To keep your application secure, store sensitive values in Cloud Secret Manager.
+# https://firebase.google.com/docs/app-hosting/configure#access-secrets
+env:
+  - variable: ADMIN_PASSWORD
+    secret: ADMIN_PASSWORD
+  - variable: SESSION_SECRET
+    secret: SESSION_SECRET
+  - variable: FIREBASE_PROJECT_ID
+    secret: FIREBASE_PROJECT_ID
+  - variable: FIREBASE_CLIENT_EMAIL
+    secret: FIREBASE_CLIENT_EMAIL
+  - variable: FIREBASE_PRIVATE_KEY
+    secret: FIREBASE_PRIVATE_KEY
