@@ -1,3 +1,4 @@
+
 // @ts-nocheck
 'use server';
 
@@ -8,6 +9,7 @@ import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
 import { addProject as addProjectToDb, deleteProject as deleteProjectFromDb, updateProject as updateProjectInDb } from '@/lib/project-fs';
 import type { Project } from '@/lib/types';
+import { generateDescription } from '@/ai/flows/generate-description-flow';
 
 export async function login(prevState: any, formData: FormData) {
   const password = formData.get('password');
@@ -118,4 +120,12 @@ export async function updateProject(prevState: any, formData: FormData) {
         console.error(error);
         return { success: false, message: 'An error occurred while updating the project.' };
     }
+}
+
+export async function generateDescriptionAction(input: { title: string, technologies: string }): Promise<string> {
+    const session = await getIronSession(cookies(), sessionOptions);
+    if (!session.user?.isLoggedIn) {
+        throw new Error('Unauthorized');
+    }
+    return await generateDescription(input);
 }

@@ -1,18 +1,12 @@
-import { Logo } from '@/components/icons/logo';
+import { Logo } from '../icons/logo';
 
-type HeaderProps = {
-  children?: React.ReactNode;
-};
-
-export default function Header({ children }: HeaderProps) {
+export default function Header({ children }: { children?: React.ReactNode }) {
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-background/80 backdrop-blur-sm">
-      <div className="container flex h-16 items-center space-x-4 sm:justify-between sm:space-x-0">
-        <div className="flex gap-2 items-center">
-          <Logo className="h-6 w-6 text-primary" />
-          <h1 className="font-headline text-xl font-semibold tracking-tight">
-            Portfolio Pilot
-          </h1>
+    <header className="p-4 border-b">
+      <div className="container mx-auto flex justify-between items-center">
+        <div className="flex items-center gap-2">
+          <Logo />
+          <h1 className="font-bold text-lg">Portfolio Pilot</h1>
         </div>
         <div>{children}</div>
       </div>
