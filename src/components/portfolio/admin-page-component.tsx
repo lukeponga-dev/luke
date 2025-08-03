@@ -31,10 +31,6 @@ export default function AdminPageComponent({ initialProjects }: { initialProject
     await logout();
   };
   
-  const onProjectUpdated = (updatedProject: Project) => {
-    // This is now handled by revalidation, but we might need it for optimistic updates later
-  }
-
   const handleDeleteClick = (project: Project) => {
     setProjectToDelete(project);
   };

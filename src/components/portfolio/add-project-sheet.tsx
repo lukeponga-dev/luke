@@ -14,7 +14,8 @@ import { Label } from '../ui/label';
 import { Input } from '../ui/input';
 import { Textarea } from '../ui/textarea';
 import { addProject } from '@/app/actions';
-import { useEffect, useRef, useState, useActionState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { useActionState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import type { Project } from '@/lib/types';
 import { Loader2 } from 'lucide-react';
@@ -23,7 +24,7 @@ import { useFormStatus } from 'react-dom';
 const initialState = {
     success: false,
     message: '',
-    project: undefined,
+    project: undefined as Project | undefined,
 };
 
 function SubmitButton() {
@@ -36,9 +37,7 @@ function SubmitButton() {
     )
 }
 
-export function AddProjectSheet({ onProjectAdded }: { 
-    onProjectAdded: (project: Project) => void,
-}) {
+export function AddProjectSheet() {
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
   const [open, setOpen] = useState(false);
@@ -51,10 +50,9 @@ export function AddProjectSheet({ onProjectAdded }: {
           title: 'Success!',
           description: 'New project has been added.',
         });
-        onProjectAdded(state.project);
         setOpen(false);
         formRef.current?.reset();
-      } else {
+      } else if (!state.success) {
         toast({
           title: 'Error',
           description: state.message,
@@ -62,7 +60,7 @@ export function AddProjectSheet({ onProjectAdded }: {
         });
       }
     }
-  }, [state, onProjectAdded, toast]);
+  }, [state, toast]);
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
