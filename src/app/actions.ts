@@ -1,5 +1,4 @@
 
-// @ts-nocheck
 'use server';
 
 import { getIronSession } from 'iron-session';

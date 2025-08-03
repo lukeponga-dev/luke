@@ -1,4 +1,6 @@
 
+'use server';
+
 import { getProjectsFromFile, saveProjectsToFile } from './fs';
 import type { Project } from './types';
 
