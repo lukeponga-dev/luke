@@ -1,55 +1,27 @@
-
-'use server';
-
-import { db } from './firebase';
-import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, orderBy, query, serverTimestamp } from 'firebase/firestore';
+import { db } from './firebase'; // Correctly import the initialized admin Firestore instance
 import type { Project } from './types';
 
-const projectsCollection = collection(db, 'projects');
+const projectsCollection = db.collection('projects');
 
 export async function getProjects(): Promise<Project[]> {
-  const snapshot = await getDocs(query(projectsCollection, orderBy('createdAt', 'desc')));
-  return snapshot.docs.map(doc => {
-      const data = doc.data();
-      return {
-          id: doc.id,
-          ...data,
-          // Convert Firestore Timestamp to ISO string if it exists
-          createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : new Date().toISOString(),
-      } as Project;
-  });
+  const snapshot = await projectsCollection.orderBy('createdAt', 'desc').get();
+  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Project));
 }
 
 export async function addProject(project: Omit<Project, 'id' | 'createdAt'>): Promise<Project> {
-    const docRef = await addDoc(projectsCollection, {
-        ...project,
-        createdAt: serverTimestamp(),
-    });
-
-    return {
-        ...project,
-        id: docRef.id,
-        createdAt: new Date().toISOString(), // Return current time as a temporary value
-    };
+  const newProjectRef = projectsCollection.doc();
+  const createdAt = new Date().toISOString();
+  const newProject = { ...project, id: newProjectRef.id, createdAt };
+  await newProjectRef.set(newProject);
+  return newProject;
 }
 
-export async function updateProject(id: string, updates: Partial<Omit<Project, 'id' | 'createdAt'>>): Promise<Project> {
-    const projectDoc = doc(db, 'projects', id);
-    await updateDoc(projectDoc, updates);
-
-    // This is a simplified return, ideally we would fetch the updated doc
-    return {
-        id,
-        title: updates.title!,
-        description: updates.description!,
-        technologies: updates.technologies!,
-        keywords: updates.keywords!,
-        imageUrl: updates.imageUrl!,
-        createdAt: new Date().toISOString(),
-    };
+export async function updateProject(id: string, updates: Partial<Project>): Promise<Project> {
+  await projectsCollection.doc(id).update(updates);
+  const updatedDoc = await projectsCollection.doc(id).get();
+  return { id, ...updatedDoc.data() } as Project;
 }
 
 export async function deleteProject(id: string): Promise<void> {
-    const projectDoc = doc(db, 'projects', id);
-    await deleteDoc(projectDoc);
+  await projectsCollection.doc(id).delete();
 }
