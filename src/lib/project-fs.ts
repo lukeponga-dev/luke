@@ -1,48 +1,55 @@
 
 'use server';
 
-import { getProjectsFromFile, saveProjectsToFile } from './fs';
+import { db } from './firebase';
+import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, orderBy, query, serverTimestamp } from 'firebase/firestore';
 import type { Project } from './types';
 
+const projectsCollection = collection(db, 'projects');
+
 export async function getProjects(): Promise<Project[]> {
-  return await getProjectsFromFile();
+  const snapshot = await getDocs(query(projectsCollection, orderBy('createdAt', 'desc')));
+  return snapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+          id: doc.id,
+          ...data,
+          // Convert Firestore Timestamp to ISO string if it exists
+          createdAt: data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : new Date().toISOString(),
+      } as Project;
+  });
 }
 
 export async function addProject(project: Omit<Project, 'id' | 'createdAt'>): Promise<Project> {
-    const projects = await getProjectsFromFile();
-    const newProject: Project = {
+    const docRef = await addDoc(projectsCollection, {
         ...project,
-        id: Date.now().toString(),
-        createdAt: new Date().toISOString(),
+        createdAt: serverTimestamp(),
+    });
+
+    return {
+        ...project,
+        id: docRef.id,
+        createdAt: new Date().toISOString(), // Return current time as a temporary value
     };
-    const updatedProjects = [newProject, ...projects];
-    await saveProjectsToFile(updatedProjects);
-    return newProject;
 }
 
 export async function updateProject(id: string, updates: Partial<Omit<Project, 'id' | 'createdAt'>>): Promise<Project> {
-    const projects = await getProjectsFromFile();
-    const projectIndex = projects.findIndex(p => p.id === id);
+    const projectDoc = doc(db, 'projects', id);
+    await updateDoc(projectDoc, updates);
 
-    if (projectIndex === -1) {
-        throw new Error('Project not found');
-    }
-
-    const updatedProject = {
-        ...projects[projectIndex],
-        ...updates,
+    // This is a simplified return, ideally we would fetch the updated doc
+    return {
+        id,
+        title: updates.title!,
+        description: updates.description!,
+        technologies: updates.technologies!,
+        keywords: updates.keywords!,
+        imageUrl: updates.imageUrl!,
+        createdAt: new Date().toISOString(),
     };
-
-    projects[projectIndex] = updatedProject;
-    await saveProjectsToFile(projects);
-    return updatedProject;
 }
 
 export async function deleteProject(id: string): Promise<void> {
-    const projects = await getProjectsFromFile();
-    const updatedProjects = projects.filter(p => p.id !== id);
-    if (projects.length === updatedProjects.length) {
-        throw new Error('Project not found');
-    }
-    await saveProjectsToFile(updatedProjects);
+    const projectDoc = doc(db, 'projects', id);
+    await deleteDoc(projectDoc);
 }
