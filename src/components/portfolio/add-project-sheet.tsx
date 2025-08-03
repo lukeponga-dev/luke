@@ -14,10 +14,27 @@ import { Label } from '../ui/label';
 import { Input } from '../ui/input';
 import { Textarea } from '../ui/textarea';
 import { addProject } from '@/app/actions';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState, useActionState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import type { Project } from '@/lib/types';
 import { Loader2 } from 'lucide-react';
+import { useFormStatus } from 'react-dom';
+
+const initialState = {
+    success: false,
+    message: '',
+    project: undefined,
+};
+
+function SubmitButton() {
+    const { pending } = useFormStatus();
+    return (
+        <Button type="submit" disabled={pending} className="w-full">
+            {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Add Project
+        </Button>
+    )
+}
 
 export function AddProjectSheet({ onProjectAdded }: { 
     onProjectAdded: (project: Project) => void,
@@ -25,32 +42,27 @@ export function AddProjectSheet({ onProjectAdded }: {
   const { toast } = useToast();
   const formRef = useRef<HTMLFormElement>(null);
   const [open, setOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [state, formAction] = useActionState(addProject, initialState);
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setIsSubmitting(true);
-    
-    const formData = new FormData(event.currentTarget);
-    const result = await addProject(null, formData);
-
-    if (result.success && result.project) {
-      toast({
-        title: 'Success!',
-        description: 'New project has been added.',
-      });
-      onProjectAdded(result.project);
-      setOpen(false);
-      formRef.current?.reset();
-    } else {
-       toast({
-        title: 'Error',
-        description: result.message,
-        variant: 'destructive',
-      });
+  useEffect(() => {
+    if (state && state.message) {
+      if (state.success && state.project) {
+        toast({
+          title: 'Success!',
+          description: 'New project has been added.',
+        });
+        onProjectAdded(state.project);
+        setOpen(false);
+        formRef.current?.reset();
+      } else {
+        toast({
+          title: 'Error',
+          description: state.message,
+          variant: 'destructive',
+        });
+      }
     }
-    setIsSubmitting(false);
-  };
+  }, [state, onProjectAdded, toast]);
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -64,7 +76,7 @@ export function AddProjectSheet({ onProjectAdded }: {
             Fill in the details below to add a new project to your portfolio.
           </SheetDescription>
         </SheetHeader>
-        <form ref={formRef} onSubmit={handleSubmit} className="space-y-4 mt-6">
+        <form ref={formRef} action={formAction} className="space-y-4 mt-6">
           <div className="space-y-2">
             <Label htmlFor="title">Title</Label>
             <Input id="title" name="title" required />
@@ -85,10 +97,7 @@ export function AddProjectSheet({ onProjectAdded }: {
             <Label htmlFor="imageUrl">Image URL</Label>
             <Input id="imageUrl" name="imageUrl" defaultValue="https://placehold.co/600x400.png" required />
           </div>
-          <Button type="submit" disabled={isSubmitting} className="w-full">
-            {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Add Project
-          </Button>
+          <SubmitButton />
         </form>
       </SheetContent>
     </Sheet>
